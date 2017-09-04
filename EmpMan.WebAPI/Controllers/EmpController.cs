@@ -287,8 +287,9 @@ namespace EmpMan.Web.Controllers
                                           When (KeikenFromContractMonths/12) Between 3 And 3.9999 Then N'3 ～ 4 năm' 
                                           When (KeikenFromContractMonths/12) Between 4 And 4.9999 Then N'4 ～ 5 năm' 
                                           When (KeikenFromContractMonths/12) Between 5 And 7.9999 Then N'5 ～ 8 năm'
-                                          When (KeikenFromContractMonths/12) Between 8 And 1.9999 Then N'Trên 8 năm'
+                                          When (KeikenFromContractMonths/12) > 7.9999 Then N'Trên 8 năm'
                                     End   KeikenFromContractYearBunrui
+                                    ,COUNT(*) OVER ()   TotalRecords
                                     , " + month + @"    ExpMonth
                                     , " + year + @"    ProcessingYear
                                 FROM ViewEmp " + filterSqlString + orderBySqlString;
@@ -297,11 +298,12 @@ namespace EmpMan.Web.Controllers
 
                 totalRow = listData.Count();
 
-                var grpData = listData.Where(p=> p.FullName=="#NULL#").GroupBy(u => u.CompanyName)
+                var grpData = listData.Where(p => p.FullName == "#NULL#").GroupBy(u => u.CompanyName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                 switch (group.ToLower())
@@ -310,8 +312,9 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.DeptName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -319,8 +322,9 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.TeamName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -329,8 +333,9 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.PositionName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -339,8 +344,9 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.Gender)
                                            .Select(grp => new
                                            {
-                                               title =  (grp.Key==true)?"Nam": "Nữ",
+                                               title = (grp.Key == true) ? "Nam" : "Nữ",
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -348,8 +354,9 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.JapaneseLevelName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -357,8 +364,9 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.BusinessAllowanceName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -366,8 +374,9 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.BseAllowanceLevelName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -376,29 +385,32 @@ namespace EmpMan.Web.Controllers
                         grpData = listData.GroupBy(u => u.EmpTypeName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
-                        //theo ten truong DH
+                    //theo ten truong DH
                     case CommonConstants.EXP_GROUP_COLLECT_NAME:
                         grpData = listData.GroupBy(u => u.CollectName)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
 
-                        //tham nien theo ngay hop dong
+                    //tham nien theo ngay hop dong
                     case CommonConstants.EXP_GROUP_KEIKEN:
                         grpData = listData.GroupBy(u => u.KeikenFromContractYearBunrui)
                                            .Select(grp => new
                                            {
-                                               title = grp.Key,
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Không xác định" : grp.Key,
                                                count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
@@ -406,16 +418,16 @@ namespace EmpMan.Web.Controllers
 
                         //nhan vien nghi viec theo tung nam tung thang
 
-                    //nhan vien thu viec theo tung nam 
+                        //nhan vien thu viec theo tung nam 
 
-                    //nha vien thu viec theo tung nam tung thang
+                        //nha vien thu viec theo tung nam tung thang
 
-                    //nhan vien thu viec nhan chinh thuc theo tung nam
+                        //nhan vien thu viec nhan chinh thuc theo tung nam
 
-                    //nhan vien thu viec khong nhan chinh thuc ( 2 ly do : do khong nhan hay la ung vien tu xin nghi)
+                        //nhan vien thu viec khong nhan chinh thuc ( 2 ly do : do khong nhan hay la ung vien tu xin nghi)
 
                 }
-                
+
                 var response = request.CreateResponse(HttpStatusCode.OK, grpData);
                 return response;
             });

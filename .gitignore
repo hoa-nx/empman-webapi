@@ -239,3 +239,8 @@ EmpMan.Web/UploadedFiles/
 /EmpMan.WebAPI/UploadedFiles/Avatars
 /EmpMan.WebAPI/UploadedFiles/Products
 /EmpMan.WebAPI/Reports
+*.bak
+DB-FJSHR SYSTEM_CTY.xlsx
+EmpManAPI819
+EmpMan.WebAPI/ConnectionStrings.config
+EmpMan.Data/App.config

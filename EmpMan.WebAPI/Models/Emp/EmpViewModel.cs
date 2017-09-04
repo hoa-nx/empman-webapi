@@ -549,5 +549,7 @@ namespace EmpMan.Web.Models.Emp
         public int? ContractedJobLeavedInProcessingYearCount { set; get; }
         public int? ProcessingYear { set; get; }
         public string KeikenFromContractYearBunrui { set; get; }
+        public int? TotalRecords { set; get; }
+
     }
 }
