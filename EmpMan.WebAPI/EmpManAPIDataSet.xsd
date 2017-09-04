@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="EmpManAPIDataSet" targetNamespace="http://tempuri.org/EmpManAPIDataSet.xsd" xmlns:mstns="http://tempuri.org/EmpManAPIDataSet.xsd" xmlns="http://tempuri.org/EmpManAPIDataSet.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections>
+          <Connection AppSettingsObjectName="Web.config" AppSettingsPropertyName="EmpManConnection" ConnectionStringObject="" IsAppSettingsProperty="true" Modifier="Assembly" Name="EmpManConnection (Web.config)" ParameterPrefix="@" PropertyReference="AppConfig.System.Configuration.ConfigurationManager.0.ConnectionStrings.EmpManConnection.ConnectionString" Provider="System.Data.SqlClient" />
+        </Connections>
+        <Tables>
+          <TableAdapter BaseClass="System.ComponentModel.Component" DataAccessorModifier="AutoLayout, AnsiClass, Class, Public" DataAccessorName="RevenuesTableAdapter" GeneratorDataComponentClassName="RevenuesTableAdapter" Name="Revenues" UserDataComponentName="RevenuesTableAdapter">
+            <MainSource>
+              <DbSource ConnectionRef="EmpManConnection (Web.config)" DbObjectName="EmpManAPI.dbo.Revenues" DbObjectType="Table" FillMethodModifier="Public" FillMethodName="Fill" GenerateMethods="Both" GenerateShortCommands="false" GeneratorGetMethodName="GetData" GeneratorSourceName="Fill" GetMethodModifier="Public" GetMethodName="GetData" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="false" UserGetMethodName="GetData" UserSourceName="Fill">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="false">
+                    <CommandText>SELECT CompanyID, DeptID, TeamID, ReportYearMonth, CustomerID, CustomerName, InMonthDevMM, InMonthTransMM, InMonthManagementMM, InMonthSumMM, InMonthToUsd, InMonthToVnd FROM dbo.Revenues</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </MainSource>
+            <Mappings>
+              <Mapping SourceColumn="CompanyID" DataSetColumn="CompanyID" />
+              <Mapping SourceColumn="DeptID" DataSetColumn="DeptID" />
+              <Mapping SourceColumn="TeamID" DataSetColumn="TeamID" />
+              <Mapping SourceColumn="ReportYearMonth" DataSetColumn="ReportYearMonth" />
+              <Mapping SourceColumn="CustomerID" DataSetColumn="CustomerID" />
+              <Mapping SourceColumn="CustomerName" DataSetColumn="CustomerName" />
+              <Mapping SourceColumn="InMonthDevMM" DataSetColumn="InMonthDevMM" />
+              <Mapping SourceColumn="InMonthTransMM" DataSetColumn="InMonthTransMM" />
+              <Mapping SourceColumn="InMonthManagementMM" DataSetColumn="InMonthManagementMM" />
+              <Mapping SourceColumn="InMonthSumMM" DataSetColumn="InMonthSumMM" />
+              <Mapping SourceColumn="InMonthToUsd" DataSetColumn="InMonthToUsd" />
+              <Mapping SourceColumn="InMonthToVnd" DataSetColumn="InMonthToVnd" />
+            </Mappings>
+            <Sources />
+          </TableAdapter>
+        </Tables>
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="EmpManAPIDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="True" msprop:Generator_DataSetName="EmpManAPIDataSet" msprop:Generator_UserDSName="EmpManAPIDataSet">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="Revenues" msprop:Generator_TableClassName="RevenuesDataTable" msprop:Generator_TableVarName="tableRevenues" msprop:Generator_TablePropName="Revenues" msprop:Generator_RowDeletingName="RevenuesRowDeleting" msprop:Generator_RowChangingName="RevenuesRowChanging" msprop:Generator_RowEvHandlerName="RevenuesRowChangeEventHandler" msprop:Generator_RowDeletedName="RevenuesRowDeleted" msprop:Generator_UserTableName="Revenues" msprop:Generator_RowChangedName="RevenuesRowChanged" msprop:Generator_RowEvArgName="RevenuesRowChangeEvent" msprop:Generator_RowClassName="RevenuesRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="CompanyID" msprop:Generator_ColumnVarNameInTable="columnCompanyID" msprop:Generator_ColumnPropNameInRow="CompanyID" msprop:Generator_ColumnPropNameInTable="CompanyIDColumn" msprop:Generator_UserColumnName="CompanyID" type="xs:int" minOccurs="0" />
+              <xs:element name="DeptID" msprop:Generator_ColumnVarNameInTable="columnDeptID" msprop:Generator_ColumnPropNameInRow="DeptID" msprop:Generator_ColumnPropNameInTable="DeptIDColumn" msprop:Generator_UserColumnName="DeptID" type="xs:int" minOccurs="0" />
+              <xs:element name="TeamID" msprop:Generator_ColumnVarNameInTable="columnTeamID" msprop:Generator_ColumnPropNameInRow="TeamID" msprop:Generator_ColumnPropNameInTable="TeamIDColumn" msprop:Generator_UserColumnName="TeamID" type="xs:int" minOccurs="0" />
+              <xs:element name="ReportYearMonth" msprop:Generator_ColumnVarNameInTable="columnReportYearMonth" msprop:Generator_ColumnPropNameInRow="ReportYearMonth" msprop:Generator_ColumnPropNameInTable="ReportYearMonthColumn" msprop:Generator_UserColumnName="ReportYearMonth" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="CustomerID" msprop:Generator_ColumnVarNameInTable="columnCustomerID" msprop:Generator_ColumnPropNameInRow="CustomerID" msprop:Generator_ColumnPropNameInTable="CustomerIDColumn" msprop:Generator_UserColumnName="CustomerID" type="xs:int" minOccurs="0" />
+              <xs:element name="CustomerName" msprop:Generator_ColumnVarNameInTable="columnCustomerName" msprop:Generator_ColumnPropNameInRow="CustomerName" msprop:Generator_ColumnPropNameInTable="CustomerNameColumn" msprop:Generator_UserColumnName="CustomerName" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="2147483647" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="InMonthDevMM" msprop:Generator_ColumnVarNameInTable="columnInMonthDevMM" msprop:Generator_ColumnPropNameInRow="InMonthDevMM" msprop:Generator_ColumnPropNameInTable="InMonthDevMMColumn" msprop:Generator_UserColumnName="InMonthDevMM" type="xs:decimal" minOccurs="0" />
+              <xs:element name="InMonthTransMM" msprop:Generator_ColumnVarNameInTable="columnInMonthTransMM" msprop:Generator_ColumnPropNameInRow="InMonthTransMM" msprop:Generator_ColumnPropNameInTable="InMonthTransMMColumn" msprop:Generator_UserColumnName="InMonthTransMM" type="xs:decimal" minOccurs="0" />
+              <xs:element name="InMonthManagementMM" msprop:Generator_ColumnVarNameInTable="columnInMonthManagementMM" msprop:Generator_ColumnPropNameInRow="InMonthManagementMM" msprop:Generator_ColumnPropNameInTable="InMonthManagementMMColumn" msprop:Generator_UserColumnName="InMonthManagementMM" type="xs:decimal" minOccurs="0" />
+              <xs:element name="InMonthSumMM" msprop:Generator_ColumnVarNameInTable="columnInMonthSumMM" msprop:Generator_ColumnPropNameInRow="InMonthSumMM" msprop:Generator_ColumnPropNameInTable="InMonthSumMMColumn" msprop:Generator_UserColumnName="InMonthSumMM" type="xs:decimal" minOccurs="0" />
+              <xs:element name="InMonthToUsd" msprop:Generator_ColumnVarNameInTable="columnInMonthToUsd" msprop:Generator_ColumnPropNameInRow="InMonthToUsd" msprop:Generator_ColumnPropNameInTable="InMonthToUsdColumn" msprop:Generator_UserColumnName="InMonthToUsd" type="xs:decimal" minOccurs="0" />
+              <xs:element name="InMonthToVnd" msprop:Generator_ColumnVarNameInTable="columnInMonthToVnd" msprop:Generator_ColumnPropNameInRow="InMonthToVnd" msprop:Generator_ColumnPropNameInTable="InMonthToVndColumn" msprop:Generator_UserColumnName="InMonthToVnd" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
