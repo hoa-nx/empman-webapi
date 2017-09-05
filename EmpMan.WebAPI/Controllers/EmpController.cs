@@ -24,6 +24,7 @@ using EmpMan.Common.Enums;
 using System.Web.Http.ModelBinding;
 using EmpMan.Web.Infrastructure.CustomAttribute;
 using Mapster;
+using System.Web.Script.Serialization;
 
 namespace EmpMan.Web.Controllers
 {
@@ -414,6 +415,44 @@ namespace EmpMan.Web.Controllers
                                                items = grp.ToList()
                                            }).ToList();
                         break;
+
+                    //Lay danh sach nhan vien hien tai dang lam viec
+                    case CommonConstants.EXP_GROUP_CONTRACTED_COUNT:
+                        var listDataContracted = getEmpListFromTopMenu(group);
+                        grpData = listDataContracted.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "LTV chính thức đang làm việc",
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContracted.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
+
+                    //Lay danh sach nhan vien LTV nghỉ việc trong nam
+                    case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
+                        var listDataContractedJobLeavedInYear = getEmpListFromTopMenu(group);
+                        grpData = listDataContractedJobLeavedInYear.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "LTV chính thức nghỉ việc trong năm",
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContractedJobLeavedInYear.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
+                    //Lay danh sach nhan vien LTV thử việc không vào chính thức trong năm
+                    case CommonConstants.EXP_GROUP_TRIAL_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
+                        var listDataTrialJobLeavedInYear = getEmpListFromTopMenu(group);
+                        grpData = listDataTrialJobLeavedInYear.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "LTV thử việc không nhận chính thức trong năm",
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTrialJobLeavedInYear.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
                         //nhan vien nghi viec theo tung nam
 
                         //nhan vien nghi viec theo tung nam tung thang
@@ -433,6 +472,34 @@ namespace EmpMan.Web.Controllers
             });
         }
 
+        private IEnumerable<EmpViewModel> getEmpListFromTopMenu(string group)
+        {
+            string filterSql = "";
+            switch (group.ToLower())
+            {
+                case CommonConstants.EXP_GROUP_CONTRACTED_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,GETDATE())) ";
+                    break;
+
+                case CommonConstants.EXP_GROUP_TRIAL_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NULL AND (StartWorkingDate IS NOT NULL OR StartTrialDate IS NOT NULL) ";
+                    break;
+
+                case CommonConstants.EXP_GROUP_TRIAL_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND(StartTrialDate IS NOT NULL  OR StartWorkingDate IS NOT NULL) AND(JobLeaveDate  BETWEEN  '@processingDateFrom@' AND '@processingDateTo@') ";
+                    break;
+
+                case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND(JobLeaveDate  BETWEEN  '@processingDateFrom@' AND CONVERT(DATE, GETDATE())) ";
+                    break;
+
+            }
+            string sql = GetAllFromViewEmpSql(null,null, filterSql);
+
+            var listData = _dataService.GetDbContext().Database.SqlQuery<EmpViewModel>(sql);
+
+            return listData;
+        }
 
         [Route("getexpandablebyteam")]
         [HttpGet]
@@ -1092,7 +1159,7 @@ namespace EmpMan.Web.Controllers
 
         }
         //[Permission(Action = "Read", Function = "USER")]
-        private string GetAllFromViewEmpSql(string keyword , int? topRecordSelect = null)
+        private string GetAllFromViewEmpSql(string keyword , int? topRecordSelect = null , string addFilterSql =null)
         {
             string addWhereSql = "";
             string sqlTopSelect = "";
@@ -1103,7 +1170,10 @@ namespace EmpMan.Web.Controllers
             }
 
             if (!string.IsNullOrEmpty(keyword))
-                addWhereSql = " AND (COALESCE(FullName,'') + COALESCE(Name,'') + COALESCE(AccountName,' ') + COALESCE(TaxCode,' ') + COALESCE(Note,' ') + ISNULL(DeptName,'') + COALESCE(TeamName,'') + COALESCE(PositionName,'') + COALESCE (EmpTypeName,'')) like N'%" + keyword + "%'";
+                addWhereSql = " AND (COALESCE(FullName,'') + COALESCE(Name,'') + COALESCE(AccountName,' ') + COALESCE(TaxCode,' ') + COALESCE(Note,' ') + ISNULL(DeptName,'') + COALESCE(TeamName,'') + COALESCE(PositionName,'') + COALESCE (EmpTypeName,'')) like N'%" + keyword + "%' ";
+
+            if (!string.IsNullOrEmpty(keyword))
+                addWhereSql += " " +  addFilterSql;
 
             string filterSqlString = _systemConfigService.getEmpSqlFilter(User.Identity.Name, true, addWhereSql);
             string orderBySqlString = _systemConfigService.getEmpSqlOrderBy(User.Identity.Name, true, "", false);
@@ -1111,6 +1181,20 @@ namespace EmpMan.Web.Controllers
             var model = _systemConfigService.GetByAccount(User.Identity.Name);
             int month = 4;
             int year = 2017;
+
+            if (model.EmpFilterDataValue != null)
+            {
+                var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
+                if (empFilterViewModel.systemValue.ExpMonth.HasValue)
+                {
+                    month = empFilterViewModel.systemValue.ExpMonth.Value;
+                }
+                if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
+                {
+                    year = empFilterViewModel.systemValue.ProcessingYear.Value.Year;
+                }
+            }
+            
             string processingDateFrom = year + "/01/01";
             string processingDateTo = year + "/12/31";
 
@@ -1146,11 +1230,15 @@ namespace EmpMan.Web.Controllers
                                             AND (JobLeaveDate  BETWEEN  '" + processingDateFrom + @"' AND '" + processingDateTo + @"') THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialJobLeavedInProcessingYearCount
 
 	                            , 0 OnsiteCount 
-                                , " + month + @"    ExpMonth
-                                , " + year + @"    ProcessingYear
+                                , COUNT(*) OVER ()      TotalRecords
+                                , " + month + @"        ExpMonth
+                                , " + year + @"         ProcessingYear
                                 FROM ViewEmp " + filterSqlString + orderBySqlString;
 
             sql = sql.Replace("@TOP_RECORD@", sqlTopSelect);
+            sql = sql.Replace("@processingDateFrom@", processingDateFrom);
+            sql = sql.Replace("@processingDateTo@", processingDateTo);
+
             return sql;
 
         }

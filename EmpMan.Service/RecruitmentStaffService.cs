@@ -396,7 +396,7 @@ namespace EmpMan.Service
 
         public IEnumerable<RecruitmentStaff> GetInterviewNotificationList(int beforeHours)
         {
-            string sql = "";
+            return null;
         }
 
         /// <summary>

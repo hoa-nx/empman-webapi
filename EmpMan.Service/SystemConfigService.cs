@@ -296,6 +296,23 @@ namespace EmpMan.Service
             var model = GetByAccount(account);
 
             var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
+            int month = 4;
+            int year = 2017;
+
+            if (model.EmpFilterDataValue != null)
+            {
+                if (empFilterViewModel.systemValue.ExpMonth.HasValue)
+                {
+                    month = empFilterViewModel.systemValue.ExpMonth.Value;
+                }
+                if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
+                {
+                    year = empFilterViewModel.systemValue.ProcessingYear.Value.Year;
+                }
+            }
+
+            string processingDateFrom = year + "/01/01";
+            string processingDateTo = year + "/12/31";
 
             if (isWhereTrueStringAppend)
             {
@@ -311,6 +328,11 @@ namespace EmpMan.Service
                     case "1" :
                         //neu la nghi viec ( nhung nhan vien nghi viec nhung co ngay nghi viec <= ngay hien tai
                         sql += " AND " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " <= CONVERT(DATE,GETDATE())";
+                        break;
+
+                    case "2":
+                        //lay tat ca nhân viên đang làm việc trong năm tài chính trở đi
+                        sql += " AND (" + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " IS NULL OR " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,'" + processingDateFrom + "' ))";
                         break;
 
                     case "3":
