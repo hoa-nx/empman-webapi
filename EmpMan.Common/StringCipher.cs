@@ -20,6 +20,7 @@ namespace EmpMan.Common
 
         public static string Encrypt(string plainText, string passPhrase)
         {
+            if (string.IsNullOrEmpty(plainText)) return "";
             // Salt and IV is randomly generated each time, but is preprended to encrypted cipher text
             // so that the same Salt and IV values can be used when decrypting.  
             var saltStringBytes = Generate256BitsOfRandomEntropy();
@@ -57,6 +58,7 @@ namespace EmpMan.Common
 
         public static string Decrypt(string cipherText, string passPhrase)
         {
+            if (string.IsNullOrEmpty(cipherText)) return "";
             // Get the complete stream of bytes that represent:
             // [32 bytes of Salt] + [32 bytes of IV] + [n bytes of CipherText]
             var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);

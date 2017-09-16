@@ -4,6 +4,7 @@ using EmpMan.Data.Infrastructure;
 using EmpMan.Model.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,11 @@ namespace EmpMan.Data.Repositories
         IEnumerable<StatisticViewModel> GetMMByTypeAndYearMonthStatistic(int?[] years ,bool isUnpivotColumnToRows);
         IEnumerable<ReportStatisticViewModel> GetMMByTypeAndYearMonthStatisticReport(int year);
         IEnumerable<StatisticViewModel> GetCompareMMByTypeAndYearMonthStatistic(int prevYear, int curYear);
+        IEnumerable<StatisticViewModel> GetCompareCutommerMMByTypeAndYearMonthStatistic(int curYear);
+        IEnumerable<StatisticViewModel> GetCompareCutommerMMByTypeAndYearMonthStatistic(int prevYear, int curYear);
+        IEnumerable<WorkEmpTypeStatisticViewModel> GetEmpCountMonthlyStatistic(int? companyID, int? deptID, int? teamID, DateTime startDate, DateTime endDate);
+
+
     }
 
     public class TargetRepository : RepositoryBase<Target>, ITargetRepository
@@ -142,6 +148,37 @@ namespace EmpMan.Data.Repositories
         }
 
         /// <summary>
+        /// Lay doanh so theo tung khach hang cua nam nay
+        /// </summary>
+        /// <param name="curYear"></param>
+        /// <returns></returns>
+        public IEnumerable<StatisticViewModel> GetCompareCutommerMMByTypeAndYearMonthStatistic(int curYear)
+        {
+            StringBuilder sql = new StringBuilder();
+
+            sql = this.getCustomerMMByTypeAndYearMonthStatisticSql(new int?[] { curYear });
+
+            return DbContext.Database.SqlQuery<StatisticViewModel>(sql.ToString());
+
+        }
+
+        /// <summary>
+        /// Lay doanh so theo tung khach hang cua nam nay va nam truoc
+        /// </summary>
+        /// <param name="prevYear"></param>
+        /// <param name="curYear"></param>
+        /// <returns></returns>
+        public IEnumerable<StatisticViewModel> GetCompareCutommerMMByTypeAndYearMonthStatistic(int prevYear, int curYear)
+        {
+            StringBuilder sql = new StringBuilder();
+
+            sql = this.getCustomerMMByTypeAndYearMonthStatisticSql(new int?[] { prevYear,curYear });
+
+            return DbContext.Database.SqlQuery<StatisticViewModel>(sql.ToString());
+
+        }
+
+        /// <summary>
         /// Lấy sql để get doanh số của các năm
         /// </summary>
         /// <param name="years"></param>
@@ -259,6 +296,42 @@ namespace EmpMan.Data.Repositories
 
         }
 
+        /// <summary>
+        /// Lấy sql để get doanh số của các năm theo tung khach hang
+        /// </summary>
+        /// <param name="years"></param>
+        /// <returns></returns>
+        private StringBuilder getCustomerMMByTypeAndYearMonthStatisticSql(int?[] years)
+        {
+            StringBuilder sql = new StringBuilder();
+
+            sql.AppendLine(" SELECT ");
+            sql.AppendLine(" 	YEAR(REV.REPORTYEARMONTH)  YEAR ");
+            sql.AppendLine("  , REV.COMPANYID  ");
+            sql.AppendLine("  , REV.DEPTID  ");
+            sql.AppendLine("  , REV.CustomerID ");
+            sql.AppendLine("  , MAX(CUS.ShortName) CustomerName ");
+            sql.AppendLine("  , SUM(COALESCE(REV.INMONTHDEVMM, 0)) INMONTHDEVMM  ");
+            sql.AppendLine("  , SUM(COALESCE(REV.INMONTHTRANSMM, 0)) INMONTHTRANSMM  ");
+            sql.AppendLine("  , SUM(COALESCE(REV.INMONTHMANAGEMENTMM, 0)) INMONTHMANAGEMENTMM  ");
+            sql.AppendLine("  , SUM(COALESCE(REV.INMONTHONSITEMM, 0)) INMONTHONSITEMM  ");
+            sql.AppendLine("  , SUM(COALESCE(REV.INMONTHSUMMM, 0)) + SUM(COALESCE(REV.INMONTHONSITEMM, 0))  InMonthSumMM  ");
+            sql.AppendLine("  , SUM(COALESCE(REV.INMONTHSUMMM, 0)) + SUM(COALESCE(REV.INMONTHONSITEMM, 0)) - SUM(COALESCE(REV.INMONTHTRANSMM, 0))  InMonthSumIncludeOnsiteMM  ");
+            sql.AppendLine("  , SUM(COALESCE(REV.INMONTHSUMMM, 0)) - SUM(COALESCE(REV.INMONTHTRANSMM, 0)) - SUM(COALESCE(REV.INMONTHONSITEMM, 0))  InMonthDevSumExcludeTransOnsiteMM  ");
+            sql.AppendLine("  FROM REVENUES REV LEFT OUTER JOIN Customers CUS ON REV.CustomerID = CUS.ID ");
+            if (years != null)
+            {
+                sql.AppendLine(" WHERE YEAR(REV.REPORTYEARMONTH) IN ( " + StringHelper.GetSqlStringFromArrayInt(years) + " )");
+
+            }
+            sql.AppendLine("  GROUP BY  ");
+            sql.AppendLine("  YEAR(REV.REPORTYEARMONTH),REV.COMPANYID, REV.DEPTID, REV.CustomerID ");
+            sql.AppendLine("  ORDER BY YEAR(REV.REPORTYEARMONTH),REV.COMPANYID , REV.DEPTID , REV.CustomerID ");
+
+            return sql;
+
+        }
+
         public IEnumerable<ReportStatisticViewModel> GetMMByTypeAndYearMonthStatisticReport(int year)
         {
             StringBuilder sql = new StringBuilder();
@@ -334,6 +407,65 @@ namespace EmpMan.Data.Repositories
 
         }
 
+        public IEnumerable<WorkEmpTypeStatisticViewModel> GetEmpCountMonthlyStatistic(int? companyID, int? deptID, int? teamID, DateTime startDate, DateTime endDate)
+        {
+            var companyIDParam = new SqlParameter
+            {
+                ParameterName = "CompanyID",
+                Value = companyID
+            };
+            var deptIDParam = new SqlParameter
+            {
+                ParameterName = "DeptID",
+                Value = deptID
+            };
+            var teamIDParam = new SqlParameter
+            {
+                ParameterName = "TeamID",
+                Value = null
+            };
+            var startDateParam = new SqlParameter
+            {
+                ParameterName = "StartDate",
+                Value = startDate
+            };
+            var endDateParam = new SqlParameter
+            {
+                ParameterName = "EndDate",
+                Value = endDate
+            };
+
+            string sql = @" SELECT 
+                                YMD 
+                                , cast(convert(varchar(6),YMD,112) as nvarchar)  YM
+                                , [0] WorkingEmpCount
+                                , [1] FromOtherDeptEmpCount
+                                , [2] ToOtherDeptEmpCount
+                                , [3] OnsiteEmpCount
+                                , [4] StopWorkingEmpCount
+                                , [999] ContractedJobLeavedEmpCount
+                                , [1000] RevenueCount
+                                , COALESCE(PIV.[0],0) + COALESCE(PIV.[1],0)  + COALESCE(PIV.[3],0) TotalEmpCount 
+                            FROM 
+                                 (
+                                    SELECT * FROM [dbo].[GetWorkingEmpCountAtDate] (@CompanyID,@DeptID,NULL,@startDate,@endDate)
+                                 ) SRC
+                                 PIVOT 
+                                 (
+	                                MAX(CNT)
+	                                FOR WorkEmpType IN ( [0],[1],[2],[3],[4],[999],[1000])
+                                  ) PIV
+                            ";
+
+            sql = sql.Replace("@CompanyID", companyID.ToString() );
+            sql = sql.Replace("@DeptID", deptID.ToString());
+            sql = sql.Replace("@TeamID", "NULL");
+            sql = sql.Replace("@startDate","'" + startDate.ToString("yyyy/MM/dd") + "'");
+            sql = sql.Replace("@endDate", "'" + endDate.ToString("yyyy/MM/dd") +"'");
+
+            return DbContext.Database.SqlQuery<WorkEmpTypeStatisticViewModel>(sql.ToString()) ;
+
+        }
 
     }
 }

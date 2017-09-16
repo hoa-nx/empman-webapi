@@ -255,8 +255,11 @@ namespace EmpMan.Web.Models.Emp
         public virtual MasterDetailViewModel Collect { set; get; }
 
         public virtual MasterDetailViewModel EducationLevel { set; get; }
-
+        /// <summary>
+        /// Danh sach nhan vien can cap nhat
+        /// </summary>
         public List<int?> ListEmpID { set; get; }
+        
 
     }
 }

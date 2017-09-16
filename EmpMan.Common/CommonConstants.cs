@@ -97,6 +97,10 @@ namespace EmpMan.Common
         public const string EXP_GROUP_COLLECT_NAME = "collect";
         public const string EXP_GROUP_JOB_LEAVE_BY_YEARMONTH = "jobleavebyyearmonth";
         public const string EXP_GROUP_CONTRACTED_COUNT = "contractedcount";
+        public const string EXP_GROUP_CONTRACTED_JOB_LEAVED_COUNT = "contractedjobleavedcount";
+        public const string EXP_GROUP_CONTRACTED_LT_NM_MONTH_COUNT = "contractedltnmonthcount";
+        public const string EXP_GROUP_OTHER_COUNT = "othercount";
+        public const string EXP_GROUP_TRANS_COUNT = "transcount";
         public const string EXP_GROUP_TRIAL_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT = "trialjobleavedinprocessingyearcount";
         public const string EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT = "contractedjobleavedinprocessingyearcount";
         public const string EXP_GROUP_TRIAL_COUNT = "trialcount";

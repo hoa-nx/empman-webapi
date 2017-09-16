@@ -19,6 +19,9 @@ namespace EmpMan.Common.ViewModels
         public int? TeamID { set; get; }
         public string TeamName{ set; get; }
 
+        public int? CustomerID { set; get; }
+        public string CustomerName { set; get; }
+
         public decimal? Month1{ set; get; }
         public decimal? Month2 { set; get; }
         public decimal? Month3 { set; get; }
@@ -36,6 +39,7 @@ namespace EmpMan.Common.ViewModels
 
         public string MonthToName { set; get; }
 
+        public int? Year { set; get; }
         public int? YMD { set; get; }
 
         public decimal? DevMMTarget { set; get; }
@@ -155,5 +159,23 @@ namespace EmpMan.Common.ViewModels
         public Nullable<decimal> Month11 { set; get; }
         public Nullable<decimal> Month12 { set; get; }
         
+    }
+
+    public class WorkEmpTypeStatisticViewModel
+    {
+        public string YM { set; get; }
+        public DateTime YMD { set; get; }
+        public decimal CNT { set; get; }
+        public decimal? WorkingEmpCount { set; get; }
+        public decimal? FromOtherDeptEmpCount { set; get; }
+        public decimal? ToOtherDeptEmpCount { set; get; }
+        public decimal? OnsiteEmpCount { set; get; }
+        public decimal? StopWorkingEmpCount { set; get; }
+        public decimal? ContractedJobLeavedEmpCount { set; get; }
+        public decimal? TotalEmpCount { set; get; }
+        public decimal WorkEmpType { set; get; }
+        public decimal? RevenueCount { set; get; }
+        public string WorkEmpTypeName { set; get; }
+
     }
 }

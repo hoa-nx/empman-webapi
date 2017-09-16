@@ -68,6 +68,12 @@ namespace EmpMan.Web.Controllers
             });
         }
 
+        /// <summary>
+        /// So sanh doanh giua cac nam voi nhau
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="searchParams"></param>
+        /// <returns></returns>
         [Route("getmmbytypeandyearmonthcompare")]
         [HttpPost]
         public HttpResponseMessage GetCompareMMByTypeAndYearMonthStatistic(HttpRequestMessage request, SearchItemViewModel searchParams)
@@ -85,6 +91,83 @@ namespace EmpMan.Web.Controllers
                 return response;
             });
         }
+
+        /// <summary>
+        /// Doanh so theo tung khach hang
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="searchParams"></param>
+        /// <returns></returns>
+        [Route("getmmbytypeandyearmonthcomparecustomer")]
+        [HttpPost]
+        public HttpResponseMessage GetCompareCutommerMMByTypeAndYearMonthStatistic(HttpRequestMessage request, SearchItemViewModel searchParams)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                HttpResponseMessage response = request.CreateResponse(HttpStatusCode.BadRequest, "Tham số không đúng");
+                if (searchParams != null)
+                {
+                    int?[] years = searchParams.NumberItems.ToArray();
+                    if(years!=null && years.Length>0)
+                    {
+                        if (years.Length == 1)
+                        {
+                            //thong ke doanh so cua tung khach hang trong 1 nam
+                            var model = _statisticService.GetCompareCutommerMMByTypeAndYearMonthStatistic(years[0].Value);
+                            response = request.CreateResponse(HttpStatusCode.OK, model);
+                        }
+                        else
+                        {
+                            //so sanh giua 2 nam voi nhau theo tung khach hang
+                            var model = _statisticService.GetCompareCutommerMMByTypeAndYearMonthStatistic(years[0].Value, years[1].Value);
+                            response = request.CreateResponse(HttpStatusCode.OK, model);
+                        }
+
+                    }else
+                    {
+                        //lay theo tat ca cac nam co trong DB
+                        //var model = _statisticService.GetCompareCutommerMMByTypeAndYearMonthStatistic(null);
+                    }
+
+                }
+
+                return response;
+            });
+        }
+
+        /// <summary>
+        /// Doanh so theo tung khach hang
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="searchParams"></param>
+        /// <returns></returns>
+        [Route("getempcountbymonthly")]
+        [HttpPost]
+        public HttpResponseMessage GetEmpCountMonthlyStatistic(HttpRequestMessage request, SearchItemViewModel searchParams)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                HttpResponseMessage response = request.CreateResponse(HttpStatusCode.BadRequest, "Tham số không đúng");
+                if (searchParams != null)
+                {
+                    DateTime?[] date= searchParams.DateTimeItems.ToArray();
+                    if (date != null && date.Length > 0)
+                    {
+                        var model = _statisticService.GetEmpCountMonthlyStatistic( User.Identity.GetApplicationUser().CompanyID , User.Identity.GetApplicationUser().DeptID, User.Identity.GetApplicationUser().TeamID,  date[0].Value, date[1].Value);
+                        response = request.CreateResponse(HttpStatusCode.OK, model);
+                    }
+                    else
+                    {
+                        //lay theo tat ca cac nam co trong DB
+                        //var model = _statisticService.GetCompareCutommerMMByTypeAndYearMonthStatistic(null);
+                    }
+
+                }
+
+                return response;
+            });
+        }
+
 
         [Route("getmmbytypeandyearmonthreport")]
         [HttpGet]

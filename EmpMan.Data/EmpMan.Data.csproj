@@ -184,8 +184,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SqlFiles\EmpListCountByMonthly.sql" />
     <Content Include="SqlFiles\EmpListView.sql" />
+    <Content Include="SqlFiles\Functions\GetContractedJobLeavedEmpListAtDate.sql" />
+    <Content Include="SqlFiles\Functions\GetFromOtherDeptEmpListAtDate.sql" />
+    <Content Include="SqlFiles\Functions\GetOnisteEmpListAtDate.sql" />
+    <Content Include="SqlFiles\Functions\GetStopWorkingEmpListAtDate.sql" />
+    <Content Include="SqlFiles\Functions\GetToOtherDeptEmpListAtDate.sql" />
+    <Content Include="SqlFiles\Functions\GetWorkingEmpCountAtDate.sql" />
+    <Content Include="SqlFiles\Functions\GetWorkingEmpListAtDate.sql" />
+    <Content Include="SqlFiles\GetAllEmpList.sql" />
+    <Content Include="SqlFiles\GetWorkingEmpListAtDate.sql" />
     <Content Include="SqlFiles\RecruitmentListView.sql" />
+    <Content Include="SqlFiles\Views\ViewEmp.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201708160341355_Add JobScheduler table.resx">
@@ -207,6 +218,7 @@
       <DependentUpon>201709031243345_add columns to SystemConfig.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

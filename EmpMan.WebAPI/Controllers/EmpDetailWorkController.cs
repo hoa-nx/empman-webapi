@@ -95,7 +95,7 @@ namespace EmpMan.Web.Controllers
         }
 
         [Route("add")]
-        [HttpPost]
+        [HttpPut]
         [Permission(Action = FunctionActions.CREATE, Function = FunctionConstants.EMP_WORK)]
         public HttpResponseMessage Create(HttpRequestMessage request, EmpDetailWorkViewModel dataVm)
         {
@@ -108,24 +108,33 @@ namespace EmpMan.Web.Controllers
                 }
                 else
                 {
-                    EmpDetailWork newData = new EmpDetailWork();
+                    if (dataVm.ListEmpID.Count > 0)
+                    {
+                        for(int i =0; i< dataVm.ListEmpID.Count; i++)
+                        {
+                            EmpDetailWork newData = new EmpDetailWork();
 
-                    /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
+                            dataVm.EmpID = dataVm.ListEmpID[i].Value;
+
+                            /** cập nhật các thông tin chung **/
+                            newData.CreatedDate = DateTime.Now;
+                            newData.CreatedBy = User.Identity.Name;
+
+                            newData.UpdatedDate = DateTime.Now;
+                            newData.UpdatedBy = User.Identity.Name;
+                            //Người sở hữu dữ liệu
+                            newData.AccountData = User.Identity.GetApplicationUser().Email;
+
+
+                            newData.UpdateEmpDetailWork(dataVm);
+
+                            var data = _dataService.Add(newData);
+                            _dataService.SaveChanges();
+                        }
+                    }
                     
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
-                    //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
-                    
-
-                    newData.UpdateEmpDetailWork(dataVm);
-
-                    var data = _dataService.Add(newData);
-                    _dataService.SaveChanges();
-
-                    response = request.CreateResponse(HttpStatusCode.Created, data);
+                    //tra ve so dong duoc tao moi
+                    response = request.CreateResponse(HttpStatusCode.Created, dataVm.ListEmpID.Count);
                 }
                 return response;
             });

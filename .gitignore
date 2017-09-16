@@ -244,3 +244,8 @@ DB-FJSHR SYSTEM_CTY.xlsx
 EmpManAPI819
 EmpMan.WebAPI/ConnectionStrings.config
 EmpMan.Data/App.config
+EmpMan.WebAPI/UploadedFiles/Recruitments/ThongTinUngVien_20170719.xls
+EmpMan.WebAPI/UploadedFiles/Excels/ThongTinUngVien_20170719.xlsx
+EmpMan.WebAPI/UploadedFiles/Excels/BodyPart_08801fa3-e5b5-463a-aa8a-4bc93ff51d1c
+EmpMan.WebAPI/UploadedFiles/Emps/Quyet dinh dieu chuyen nhan su_20170905_NHI-PTQ.pdf
+EmpMan.WebAPI/UploadedFiles/Emps/Quyet dinh dieu chuyen nhan su_20170904_THONG-VQ.pdf

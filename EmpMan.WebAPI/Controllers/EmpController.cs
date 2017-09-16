@@ -428,6 +428,18 @@ namespace EmpMan.Web.Controllers
                                                items = grp.ToList()
                                            }).ToList();
                         break;
+                    //LTV chinh thuc da nghi viec
+                    case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_COUNT:
+                        var listDataContractJobLeaved = getEmpListFromTopMenu(group);
+                        grpData = listDataContractJobLeaved.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "LTV chính thức đã nghỉ việc",
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContractJobLeaved.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
 
                     //Lay danh sach nhan vien LTV nghỉ việc trong nam
                     case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
@@ -435,7 +447,7 @@ namespace EmpMan.Web.Controllers
                         grpData = listDataContractedJobLeavedInYear.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "LTV chính thức nghỉ việc trong năm",
+                                               title = "LTV chính thức nghỉ việc trong năm " ,
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContractedJobLeavedInYear.Count(),
                                                items = grp.ToList()
@@ -453,17 +465,54 @@ namespace EmpMan.Web.Controllers
                                                items = grp.ToList()
                                            }).ToList();
                         break;
-                        //nhan vien nghi viec theo tung nam
-
-                        //nhan vien nghi viec theo tung nam tung thang
-
-                        //nhan vien thu viec theo tung nam 
-
-                        //nha vien thu viec theo tung nam tung thang
-
-                        //nhan vien thu viec nhan chinh thuc theo tung nam
-
-                        //nhan vien thu viec khong nhan chinh thuc ( 2 ly do : do khong nhan hay la ung vien tu xin nghi)
+                        //so LTV nho hon N thang 
+                    case CommonConstants.EXP_GROUP_CONTRACTED_LT_NM_MONTH_COUNT:
+                        var listDataContractLTNMonth = getEmpListFromTopMenu(group);
+                        grpData = listDataContractLTNMonth.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "LTV chính thức thâm niên nhỏ hơn " + listDataContractLTNMonth.FirstOrDefault().ExpMonth + " tháng", 
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContractLTNMonth.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
+                    //Cac nhan vien khac (Ngoai LTV và PD)
+                    case CommonConstants.EXP_GROUP_OTHER_COUNT:
+                        var listDataOtherEmp = getEmpListFromTopMenu(group);
+                        grpData = listDataOtherEmp.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "Các nhân viên khác",
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataOtherEmp.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
+                    //Phien dich
+                    case CommonConstants.EXP_GROUP_TRANS_COUNT:
+                        var listDataTransEmp= getEmpListFromTopMenu(group);
+                        grpData = listDataTransEmp.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "Phiên dịch",
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTransEmp.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
+                    //LTV thu viec 
+                    case CommonConstants.EXP_GROUP_TRIAL_COUNT:
+                        var listDataTrialEmp = getEmpListFromTopMenu(group);
+                        grpData = listDataTrialEmp.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "LTV thử việc",
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTrialEmp.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
 
                 }
 
@@ -477,22 +526,40 @@ namespace EmpMan.Web.Controllers
             string filterSql = "";
             switch (group.ToLower())
             {
+                //LTV chinh thuc dang lam viec 
                 case CommonConstants.EXP_GROUP_CONTRACTED_COUNT:
                     filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,GETDATE())) ";
                     break;
-
+                //LTV chinh thuc dang lam viec 
+                case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NOT NULL AND JobLeaveDate < CONVERT(DATE,GETDATE())) ";
+                    break;
+                //LTV dang thu viec
                 case CommonConstants.EXP_GROUP_TRIAL_COUNT:
                     filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NULL AND (StartWorkingDate IS NOT NULL OR StartTrialDate IS NOT NULL) ";
                     break;
 
+                //So PD 
+                case CommonConstants.EXP_GROUP_TRANS_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID IN(2)  ";
+                    break;
+                //So NV khác
+                case CommonConstants.EXP_GROUP_OTHER_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID NOT IN (1,2)  ";
+                    break;
+                //Nhan vien thu viec khong vao chinh thuc trong nam 
                 case CommonConstants.EXP_GROUP_TRIAL_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
                     filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND(StartTrialDate IS NOT NULL  OR StartWorkingDate IS NOT NULL) AND(JobLeaveDate  BETWEEN  '@processingDateFrom@' AND '@processingDateTo@') ";
                     break;
-
+                //NV chinh thuc nghi viec trong nam
                 case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
                     filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND(JobLeaveDate  BETWEEN  '@processingDateFrom@' AND CONVERT(DATE, GETDATE())) ";
                     break;
 
+                //NV chinh thuc nho hon N thang 
+                case CommonConstants.EXP_GROUP_CONTRACTED_LT_NM_MONTH_COUNT:
+                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND JobLeaveDate IS NULL AND ContractDate >= DATEADD(month,-@month@, CONVERT(DATE,GETDATE())) ";
+                    break;
             }
             string sql = GetAllFromViewEmpSql(null,null, filterSql);
 
@@ -1172,7 +1239,7 @@ namespace EmpMan.Web.Controllers
             if (!string.IsNullOrEmpty(keyword))
                 addWhereSql = " AND (COALESCE(FullName,'') + COALESCE(Name,'') + COALESCE(AccountName,' ') + COALESCE(TaxCode,' ') + COALESCE(Note,' ') + ISNULL(DeptName,'') + COALESCE(TeamName,'') + COALESCE(PositionName,'') + COALESCE (EmpTypeName,'')) like N'%" + keyword + "%' ";
 
-            if (!string.IsNullOrEmpty(keyword))
+            if (!string.IsNullOrEmpty(addFilterSql))
                 addWhereSql += " " +  addFilterSql;
 
             string filterSqlString = _systemConfigService.getEmpSqlFilter(User.Identity.Name, true, addWhereSql);
@@ -1216,7 +1283,7 @@ namespace EmpMan.Web.Controllers
                                 , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NOT NULL AND StartTrialDate IS NOT NULL THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialJobLeavedCount
 	                            , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NULL AND (StartWorkingDate IS NOT NULL OR StartTrialDate IS NOT NULL) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialCount
 	                            , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND JobLeaveDate IS NULL AND ContractDate >= DATEADD(month,-" + month + @", CONVERT(DATE,GETDATE()))  THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedLTNMonthCount
-	                            , SUM( case when EmpTypeMasterDetailID IN(3,4) THEN 1 ELSE 0 END) OVER (PARTITION BY null) OtherCount
+	                            , SUM( case when EmpTypeMasterDetailID NOT IN(1,2) THEN 1 ELSE 0 END) OVER (PARTITION BY null) OtherCount
 	                            , SUM( case when EmpTypeMasterDetailID IN(2) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TransCount
                                 --nhan vien nghi viec trong nam tai chinh da setting 
                                 , SUM( case when EmpTypeMasterDetailID IN(1) 
@@ -1238,6 +1305,7 @@ namespace EmpMan.Web.Controllers
             sql = sql.Replace("@TOP_RECORD@", sqlTopSelect);
             sql = sql.Replace("@processingDateFrom@", processingDateFrom);
             sql = sql.Replace("@processingDateTo@", processingDateTo);
+            sql = sql.Replace("@month@", month.ToString());
 
             return sql;
 
