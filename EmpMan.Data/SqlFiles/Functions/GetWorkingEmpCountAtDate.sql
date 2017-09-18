@@ -1,11 +1,11 @@
 ﻿USE [EmpManAPI]
 GO
 
-/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/16 22:04:29 ******/
+/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/18 8:11:38 ******/
 DROP FUNCTION [dbo].[GetWorkingEmpCountAtDate]
 GO
 
-/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/16 22:04:29 ******/
+/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/18 8:11:38 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -189,7 +189,7 @@ GROUP BY dates.ymd
 
 --NGHI VIEC THEO TUNG THANG 
 UNION ALL 
-SELECT ymd , COALESCE(COUNT(*),0) CNT   , 999 AS WorkEmpType FROM [dbo].[GetContractedJobLeavedEmpListAtDate] (@CompanyID,@DeptID,@TeamID,@StartDate,@EndDate)
+SELECT ymd , SUM(CASE WHEN id IS NOT NULL THEN 1 ELSE 0 END) CNT   , 999 AS WorkEmpType FROM [dbo].[GetContractedJobLeavedEmpListAtDate] (@CompanyID,@DeptID,@TeamID,@StartDate,@EndDate)
 GROUP BY ymd
 
 --DOANH SO THEO TUNG THANG

@@ -452,7 +452,7 @@ namespace EmpMan.Data.Repositories
                                  ) SRC
                                  PIVOT 
                                  (
-	                                MAX(CNT)
+	                                COUNT(COALESCE(CNT,0))
 	                                FOR WorkEmpType IN ( [0],[1],[2],[3],[4],[999],[1000])
                                   ) PIV
                             ";
