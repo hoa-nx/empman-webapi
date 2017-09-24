@@ -297,7 +297,7 @@ namespace EmpMan.Service
 
             var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
             int month = 4;
-            int year = 2017;
+            int year = DateTime.Now.Year;
 
             if (model.EmpFilterDataValue != null)
             {
@@ -307,7 +307,7 @@ namespace EmpMan.Service
                 }
                 if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
                 {
-                    year = empFilterViewModel.systemValue.ProcessingYear.Value.Year;
+                    year = empFilterViewModel.systemValue.ProcessingYear.Value.ToLocalTime().Year;
                 }
             }
 
@@ -318,7 +318,26 @@ namespace EmpMan.Service
             {
                 sql = " WHERE 1 =1 ";
             }
-            
+            //Truong hop co thoi diem thong ke , thay the cac GETDATE() thanh ngay mong muon thong ke 
+            bool chkGetDataToDate = false;
+            string getDataToDateFrom = "GETDATE()";
+            string getDataToDateTo = "GETDATE()";
+            if (empFilterViewModel != null)
+            {
+                if (empFilterViewModel.chkGetDataToDate.HasValue)
+                {
+                    if (empFilterViewModel.chkGetDataToDate.Value)
+                    {
+                        //co setting tri 
+                        chkGetDataToDate = true;
+                        if (empFilterViewModel.getDataToDateTo.HasValue)
+                        {
+                            getDataToDateTo = "'" +  empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd") + "'";
+                        }
+                    }
+                }
+            }
+
             //phong ban 
             if (empFilterViewModel != null)
             {
@@ -326,23 +345,28 @@ namespace EmpMan.Service
                 switch (empFilterViewModel.selectDataTypes)
                 {
                     case "1" :
-                        //neu la nghi viec ( nhung nhan vien nghi viec nhung co ngay nghi viec <= ngay hien tai
-                        sql += " AND " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " <= CONVERT(DATE,GETDATE())";
+                        //neu la nghi viec ( nhung nhan vien nghi viec nhung co ngay nghi viec <= ngay hien tai hoac nho hon ngay chi dinh tren man hinh
+                        //sql += " AND " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " <= CONVERT(DATE,GETDATE())";
+                        sql += " AND " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@)";
                         break;
 
                     case "2":
-                        //lay tat ca nhân viên đang làm việc trong năm tài chính trở đi
+                        //lay tat ca nhân viên đang làm việc trong năm tài chính trở đi 
                         sql += " AND (" + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " IS NULL OR " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,'" + processingDateFrom + "' ))";
+
                         break;
 
                     case "3":
                         //dang lam viec
-                        sql += " AND (" + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " IS NULL OR " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,GETDATE()))";
+                        //sql += " AND (" + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " IS NULL OR " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,GETDATE()))";
+                        sql += " AND (" + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " IS NULL OR " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))";
                         break;
 
                     case "4":
                         //nghi viec sap toi ( nhung nhan vien nghi viec nhung co ngay nghi viec > ngay hien tai
-                        sql += " AND " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,GETDATE())";
+                        //sql += " AND " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,GETDATE())";
+                        //GET_DATA_TO_DATE_TO
+                        sql += " AND " + CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE + " >= CONVERT(DATE,@GET_DATA_TO_DATE_TO@)";
                         break;
 
                     case "99":
@@ -360,20 +384,41 @@ namespace EmpMan.Service
                 //neu co check thi moi thuc thi filter
                 if (empFilterViewModel.chkTrialDate)
                 {
-                    sql += getDateSql(empFilterViewModel.trialDateFrom, empFilterViewModel.trialDateTo, CommonConstants.SEARCH_COL_NAME_START_TRIAL_DATE);
+                    if (chkGetDataToDate && empFilterViewModel.getDataToDateTo.HasValue && empFilterViewModel.getDataToDateTo.Value < empFilterViewModel.trialDateTo.Value)
+                    {
+                        sql += getDateSql(empFilterViewModel.trialDateFrom, empFilterViewModel.getDataToDateTo, CommonConstants.SEARCH_COL_NAME_START_TRIAL_DATE);
+                    }
+                    else
+                    {
+                        sql += getDateSql(empFilterViewModel.trialDateFrom, empFilterViewModel.trialDateTo, CommonConstants.SEARCH_COL_NAME_START_TRIAL_DATE);
+                    }
+                    
                 }
                 //Ngày vào ky HD
                 //neu co check thi moi thuc thi filter
                 if (empFilterViewModel.chkContractDate)
                 {
-                    sql += getDateSql(empFilterViewModel.contractDateFrom, empFilterViewModel.contractDateTo, CommonConstants.SEARCH_COL_NAME_CONTRACT_DATE);
+                    if (chkGetDataToDate && empFilterViewModel.getDataToDateTo.HasValue && empFilterViewModel.getDataToDateTo.Value > empFilterViewModel.contractDateTo.Value)
+                    {
+                        sql += getDateSql(empFilterViewModel.contractDateFrom, empFilterViewModel.getDataToDateTo, CommonConstants.SEARCH_COL_NAME_CONTRACT_DATE);
+                    }
+                    else{
+                        sql += getDateSql(empFilterViewModel.contractDateFrom, empFilterViewModel.contractDateTo, CommonConstants.SEARCH_COL_NAME_CONTRACT_DATE);
+                    }
+                        
                 }
 
                 //Ngày nghỉ việc
                 //neu co check thi moi thuc thi filter
                 if (empFilterViewModel.chkJobLeaveDate)
                 {
-                    sql += getDateSql(empFilterViewModel.jobLeaveDateFrom, empFilterViewModel.jobLeaveDateTo, CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE);
+                    if (chkGetDataToDate && empFilterViewModel.getDataToDateTo.HasValue && empFilterViewModel.getDataToDateTo.Value > empFilterViewModel.jobLeaveDateTo.Value)
+                    {
+                        sql += getDateSql(empFilterViewModel.jobLeaveDateFrom, empFilterViewModel.getDataToDateTo, CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE);
+                    }else
+                    {
+                        sql += getDateSql(empFilterViewModel.jobLeaveDateFrom, empFilterViewModel.jobLeaveDateTo, CommonConstants.SEARCH_COL_NAME_JOB_LEAVE_DATE);
+                    }
                 }
 
                 //PHONG BAN
@@ -479,6 +524,10 @@ namespace EmpMan.Service
             {
                 sql += " " + otherWhere;
             }
+
+            //thay the parameter 
+
+            sql = sql.Replace("@GET_DATA_TO_DATE_TO@", getDataToDateTo);
 
             return sql;
 
@@ -597,18 +646,18 @@ namespace EmpMan.Service
             if (dateFrom.HasValue && dateTo.HasValue)
             {
                 //ca start va from deu co tri
-                sql += " AND " + colName + " BETWEEN CONVERT(DATE,'" + dateFrom.Value + "') AND CONVERT(DATE,'" + dateTo.Value +"')";
+                sql += " AND " + colName + " BETWEEN CONVERT(DATE,'" + dateFrom.Value.ToLocalTime() + "') AND CONVERT(DATE,'" + dateTo.Value.ToLocalTime() + "')";
 
             }
             else if (dateFrom.HasValue && dateTo == null)
             {
                 //neu chi co date start
-                sql += " AND " + colName + " >= CONVERT(DATE,'" + dateFrom.Value +"')";
+                sql += " AND " + colName + " >= CONVERT(DATE,'" + dateFrom.Value.ToLocalTime() + "')";
             }
             else if (dateFrom == null && dateTo.HasValue)
             {
                 //neu chi co date end
-                sql += " AND " + colName + " <= CONVERT(DATE,'" + dateTo.Value +"')";
+                sql += " AND " + colName + " <= CONVERT(DATE,'" + dateTo.Value.ToLocalTime() + "')";
             }
             return sql;
 

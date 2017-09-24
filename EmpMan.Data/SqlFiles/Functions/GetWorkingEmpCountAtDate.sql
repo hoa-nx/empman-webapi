@@ -1,16 +1,17 @@
 ﻿USE [EmpManAPI]
 GO
 
-/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/18 8:11:38 ******/
+/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/19 9:35:17 ******/
 DROP FUNCTION [dbo].[GetWorkingEmpCountAtDate]
 GO
 
-/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/18 8:11:38 ******/
+/****** Object:  UserDefinedFunction [dbo].[GetWorkingEmpCountAtDate]    Script Date: 2017/09/19 9:35:17 ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 CREATE FUNCTION [dbo].[GetWorkingEmpCountAtDate] (
 @CompanyID INT =NULL ,
@@ -44,12 +45,13 @@ LEFT OUTER JOIN (
 		LEFT OUTER JOIN [dbo].[GetOnisteEmpListAtDate](@CompanyID,@DeptID,@TeamID,@StartDate,@EndDate) ONS  ON  VEM.ID = ONS.ID --ONSITE
 		LEFT OUTER JOIN [dbo].[GetStopWorkingEmpListAtDate](@CompanyID,@DeptID,@TeamID,@StartDate,@EndDate) STO  ON  VEM.ID = STO.ID --NGHI GIUA CHUNG
 		LEFT OUTER JOIN [dbo].[GetToOtherDeptEmpListAtDate](@CompanyID,@DeptID,@TeamID,@StartDate,@EndDate) TOE  ON  VEM.ID = TOE.ID --HO TRO DEPT KHAC
+		LEFT OUTER JOIN [dbo].[GetContractedJobLeavedEmpListAtDate](@CompanyID,@DeptID,@TeamID,@StartDate,@EndDate) JOE  ON  VEM.ID = JOE.ID --NGHI VIEC
 	WHERE 
 		 VEM.ContractDate IS NOT NULL 
 	AND (( @CompanyID IS NOT NULL AND  VEM.CurrentCompanyID=@CompanyID ) OR ( @CompanyID IS NULL))
 	AND (( @DeptID IS NOT NULL AND  VEM.CurrentDeptID=@DeptID ) OR ( @DeptID IS NULL))
 	AND (( @TeamID IS NOT NULL AND  VEM.CurrentTeamID=@TeamID ) OR ( @TeamID IS NULL))
-	AND ( ONS.ID IS NULL  AND STO.ID IS NULL  AND TOE.ID IS NULL )
+	AND ( ONS.ID IS NULL  AND STO.ID IS NULL  AND TOE.ID IS NULL  AND JOE.ID IS NULL)
 
 	) VEM 
 ON ((VEM.JobLeaveDate IS NOT NULL AND DATEADD(DAY,20, dates.ymd) < VEM.JobLeaveDate AND VEM.ContractDate < dates.ymd ) OR (VEM.ContractDate < dates.ymd AND VEM.JobLeaveDate IS NULL))

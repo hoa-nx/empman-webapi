@@ -1,12 +1,17 @@
 ﻿USE [EmpManAPI]
 GO
 
-/****** Object:  UserDefinedFunction [dbo].[GetFromOtherDeptEmpListAtDate]    Script Date: 2017/09/16 20:55:46 ******/
+/****** Object:  UserDefinedFunction [dbo].[GetFromOtherDeptEmpListAtDate]    Script Date: 2017/09/19 9:33:38 ******/
+DROP FUNCTION [dbo].[GetFromOtherDeptEmpListAtDate]
+GO
+
+/****** Object:  UserDefinedFunction [dbo].[GetFromOtherDeptEmpListAtDate]    Script Date: 2017/09/19 9:33:38 ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 CREATE FUNCTION [dbo].[GetFromOtherDeptEmpListAtDate] (
 @CompanyID INT =NULL ,
@@ -49,5 +54,6 @@ ON (
 	)
 LEFT OUTER JOIN ViewEmp VEM ON WOK.EmpID = VEM.ID 
 ;
+
 GO
 

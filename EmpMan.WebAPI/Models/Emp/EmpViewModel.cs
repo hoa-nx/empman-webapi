@@ -483,37 +483,37 @@ namespace EmpMan.Web.Models.Emp
         
         public virtual PositionViewModel Position { set; get; }
         
-        public virtual MasterDetailViewModel ContractType { set; get; }
+        //public virtual MasterDetailViewModel ContractType { set; get; }
 
-        public virtual MasterDetailViewModel EmpType { set; get; }
+        //public virtual MasterDetailViewModel EmpType { set; get; }
 
-        public virtual MasterDetailViewModel JapaneseLevel { set; get; }
+        //public virtual MasterDetailViewModel JapaneseLevel { set; get; }
 
-        public virtual MasterDetailViewModel BusinessAllowanceLevel { set; get; }
+        //public virtual MasterDetailViewModel BusinessAllowanceLevel { set; get; }
 
-        public virtual MasterDetailViewModel RoomWithInternetAllowanceLevel { set; get; }
+        //public virtual MasterDetailViewModel RoomWithInternetAllowanceLevel { set; get; }
 
-        public virtual MasterDetailViewModel RoomNoInternetAllowanceLevel { set; get; }
+        //public virtual MasterDetailViewModel RoomNoInternetAllowanceLevel { set; get; }
 
-        public virtual MasterDetailViewModel BseAllowanceLevel { set; get; }
+        //public virtual MasterDetailViewModel BseAllowanceLevel { set; get; }
 
-        public virtual MasterDetailViewModel Collect { set; get; }
+        //public virtual MasterDetailViewModel Collect { set; get; }
 
-        public virtual MasterDetailViewModel EducationLevel { set; get; }
+        //public virtual MasterDetailViewModel EducationLevel { set; get; }
 
-        public virtual FileStorageViewModel File { set; get; }
+        //public virtual FileStorageViewModel File { set; get; }
 
-        public virtual FileStorageViewModel ProfileAttachment { set; get; }
+        //public virtual FileStorageViewModel ProfileAttachment { set; get; }
 
-        public virtual IEnumerable<EmpProfileViewModel> EmpProfiles { get; set; }
-        public virtual IEnumerable<EmpProfileTechViewModel> EmpProfileTechs{ get; set; }
-        public virtual IEnumerable<EmpProfileWorkViewModel> EmpProfileWorks { get; set; }
-        public virtual IEnumerable<EmpContractViewModel> EmpContracts { get; set; }
-        public virtual IEnumerable<EmpSalaryViewModel> EmpSalary { get; set; }
-        public virtual IEnumerable<EmpAllowanceViewModel> EmpAllowances { get; set; }
-        public virtual IEnumerable<EmpDetailWorkViewModel> EmpDetailWorks { get; set; }
-        public virtual IEnumerable<EmpOnsiteViewModel> EmpOnsites { get; set; }
-        public virtual IEnumerable<EmpSupportViewModel> EmpSupport { get; set; }
+        //public virtual IEnumerable<EmpProfileViewModel> EmpProfiles { get; set; }
+        //public virtual IEnumerable<EmpProfileTechViewModel> EmpProfileTechs{ get; set; }
+        //public virtual IEnumerable<EmpProfileWorkViewModel> EmpProfileWorks { get; set; }
+        //public virtual IEnumerable<EmpContractViewModel> EmpContracts { get; set; }
+        //public virtual IEnumerable<EmpSalaryViewModel> EmpSalary { get; set; }
+        //public virtual IEnumerable<EmpAllowanceViewModel> EmpAllowances { get; set; }
+        //public virtual IEnumerable<EmpDetailWorkViewModel> EmpDetailWorks { get; set; }
+        //public virtual IEnumerable<EmpOnsiteViewModel> EmpOnsites { get; set; }
+        //public virtual IEnumerable<EmpSupportViewModel> EmpSupport { get; set; }
 
         /* List các item không tồn tại trong Model */
         public string CompanyName { set; get; }
@@ -544,12 +544,15 @@ namespace EmpMan.Web.Models.Emp
         public int? OnsiteCount { set; get; }
         public int? ContractedJobLeavedCount { set; get; }
         public int? TrialJobLeavedCount { set; get; }
+        public int? TrialInProcessingYearCount { set; get; }
         public int? ExpMonth{ set; get; }
         public int? TrialJobLeavedInProcessingYearCount { set; get; }
         public int? ContractedJobLeavedInProcessingYearCount { set; get; }
         public int? ProcessingYear { set; get; }
         public string KeikenFromContractYearBunrui { set; get; }
         public int? TotalRecords { set; get; }
-
+        
+        //public int? WorkEmpType { set; get; }
+        //public DateTime? YMD { set; get; }
     }
 }

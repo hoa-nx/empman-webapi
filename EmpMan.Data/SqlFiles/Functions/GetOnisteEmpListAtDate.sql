@@ -1,12 +1,17 @@
 ﻿USE [EmpManAPI]
 GO
 
-/****** Object:  UserDefinedFunction [dbo].[GetOnisteEmpListAtDate]    Script Date: 2017/09/16 20:56:19 ******/
+/****** Object:  UserDefinedFunction [dbo].[GetOnisteEmpListAtDate]    Script Date: 2017/09/19 9:33:55 ******/
+DROP FUNCTION [dbo].[GetOnisteEmpListAtDate]
+GO
+
+/****** Object:  UserDefinedFunction [dbo].[GetOnisteEmpListAtDate]    Script Date: 2017/09/19 9:33:55 ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 CREATE FUNCTION [dbo].[GetOnisteEmpListAtDate] (
 @CompanyID INT =NULL ,
@@ -40,7 +45,7 @@ INNER JOIN (
 	WHERE 
 		WOK.WorkEmpTypeMasterID = 31 
 	AND WOK.WorkEmpTypeMasterDetailID =3  --loai nhan su onsite dai han
-	AND WOK.DeptID <> 1 
+	AND WOK.DeptID = 1 
 ) WOK
 ON (
 	(WOK.EndDate IS NOT NULL AND CONVERT(DATE, DATEADD(DAY, 20, dates.ymd)) between WOK.StartDate AND WOK.EndDate) 
@@ -50,5 +55,6 @@ ON (
 LEFT OUTER JOIN ViewEmp VEM ON WOK.EmpID = VEM.ID 
 
  
+
 GO
 

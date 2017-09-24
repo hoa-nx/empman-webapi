@@ -437,14 +437,14 @@ namespace EmpMan.Data.Repositories
 
             string sql = @" SELECT 
                                 YMD 
-                                , cast(convert(varchar(6),YMD,112) as nvarchar)  YM
-                                , [0] WorkingEmpCount
-                                , [1] FromOtherDeptEmpCount
-                                , [2] ToOtherDeptEmpCount
-                                , [3] OnsiteEmpCount
-                                , [4] StopWorkingEmpCount
-                                , [999] ContractedJobLeavedEmpCount
-                                , [1000] RevenueCount
+                                , CAST(convert(varchar(6),YMD,112) as nvarchar)  YM
+                                , CAST(ISNULL([0] ,0) AS DECIMAL) WorkingEmpCount
+                                , CAST(ISNULL([1] ,0) AS DECIMAL) FromOtherDeptEmpCount
+                                , CAST(ISNULL([2] ,0) AS DECIMAL) ToOtherDeptEmpCount
+                                , CAST(ISNULL([3] ,0) AS DECIMAL) OnsiteEmpCount
+                                , CAST(ISNULL([4] ,0) AS DECIMAL) StopWorkingEmpCount
+                                , CAST(ISNULL([999] ,0) AS DECIMAL) ContractedJobLeavedEmpCount
+                                , CAST(ISNULL([1000] ,0) AS DECIMAL) RevenueCount
                                 , COALESCE(PIV.[0],0) + COALESCE(PIV.[1],0)  + COALESCE(PIV.[3],0) TotalEmpCount 
                             FROM 
                                  (
@@ -452,7 +452,7 @@ namespace EmpMan.Data.Repositories
                                  ) SRC
                                  PIVOT 
                                  (
-	                                COUNT(COALESCE(CNT,0))
+	                                SUM(CNT)
 	                                FOR WorkEmpType IN ( [0],[1],[2],[3],[4],[999],[1000])
                                   ) PIV
                             ";

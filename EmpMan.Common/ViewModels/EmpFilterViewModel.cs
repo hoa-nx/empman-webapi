@@ -71,6 +71,12 @@ namespace EmpMan.Common.ViewModels
         /// Trị chung của hệ thống
         /// </summary>
         public SystemValueViewModel systemValue { set; get; }
-        
+        /// <summary>
+        /// Thoi diem tinh so lieu
+        /// </summary>
+        public bool? chkGetDataToDate { set; get; }
+        public DateTime? getDataToDateFrom { set; get; }
+        public DateTime? getDataToDateTo { set; get; }
+
     }
 }

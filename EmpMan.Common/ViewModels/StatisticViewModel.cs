@@ -165,7 +165,7 @@ namespace EmpMan.Common.ViewModels
     {
         public string YM { set; get; }
         public DateTime YMD { set; get; }
-        public decimal CNT { set; get; }
+        public decimal? CNT { set; get; }
         public decimal? WorkingEmpCount { set; get; }
         public decimal? FromOtherDeptEmpCount { set; get; }
         public decimal? ToOtherDeptEmpCount { set; get; }

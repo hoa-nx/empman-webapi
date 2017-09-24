@@ -1,4 +1,4 @@
-﻿SELECT [emp].[ID]
+﻿SELECT  [emp].[ID]
       ,[emp].[No]
       ,[emp].[FullName]
       ,[emp].[Name]
@@ -27,6 +27,9 @@
       ,[emp].[CurrentDeptID]
       ,[emp].[CurrentTeamID]
       ,[emp].[CurrentPositionID]
+      ,[emp].[InterviewDate]
+      ,[emp].[InterviewEmp]
+      ,[emp].[WorkingConditionTalkDate]
       ,[emp].[StartIntershipDate]
       ,[emp].[EndIntershipDate]
       ,[emp].[StartWorkingDate]
@@ -34,7 +37,14 @@
       ,[emp].[EndLearningDate]
       ,[emp].[StartTrialDate]
       ,[emp].[EndTrialDate]
+      ,[emp].[TrialResult]
       ,[emp].[ContractDate]
+      ,[emp].[BabyBornStartDate]
+      ,[emp].[BabyBornScheduleEndDate]
+      ,[emp].[BabyBornActualEndDate]
+      ,[emp].[BabyBornStartDate2]
+      ,[emp].[BabyBornScheduleEndDate2]
+      ,[emp].[BabyBornActualEndDate2]
       ,[emp].[ContractTypeMasterID]
       ,[emp].[ContractTypeMasterDetailID]
       ,[emp].[JobLeaveRequestDate]
@@ -43,12 +53,23 @@
       ,[emp].[JobLeaveReason]
       ,[emp].[GoogleId]
       ,[emp].[MarriedDate]
+      ,[emp].[IsMarried]
       ,[emp].[ExperienceBeforeContent]
       ,[emp].[ExperienceBeforeConvert]
       ,[emp].[ExperienceConvert]
       ,[emp].[EmpTypeMasterID]
       ,[emp].[EmpTypeMasterDetailID]
       ,[emp].[IsBSE]
+      ,[emp].[JapaneseLevelMasterID]
+      ,[emp].[JapaneseLevelMasterDetailID]
+      ,[emp].[BusinessAllowanceLevelMasterID]
+      ,[emp].[BusinessAllowanceLevelMasterDetailID]
+      ,[emp].[RoomWithInternetAllowanceLevelMasterID]
+      ,[emp].[RoomWithInternetAllowanceLevelMasterDetailID]
+      ,[emp].[RoomNoInternetAllowanceLevelMasterID]
+      ,[emp].[RoomNoInternetAllowanceLevelMasterDetailID]
+      ,[emp].[BseAllowanceLevelMasterID]
+      ,[emp].[BseAllowanceLevelMasterDetailID]
       ,[emp].[CollectMasterID]
       ,[emp].[CollectMasterDetailID]
       ,[emp].[EducationLevelMasterID]
@@ -80,16 +101,6 @@
       ,[emp].[ApprovedDate]
       ,[emp].[ApprovedBy]
       ,[emp].[ApprovedStatus]
-      ,[emp].[JapaneseLevelMasterID]
-      ,[emp].[JapaneseLevelMasterDetailID]
-      ,[emp].[BusinessAllowanceLevelMasterID]
-      ,[emp].[BusinessAllowanceLevelMasterDetailID]
-      ,[emp].[RoomWithInternetAllowanceLevelMasterID]
-      ,[emp].[RoomWithInternetAllowanceLevelMasterDetailID]
-      ,[emp].[RoomNoInternetAllowanceLevelMasterID]
-      ,[emp].[RoomNoInternetAllowanceLevelMasterDetailID]
-      ,[emp].[BseAllowanceLevelMasterID]
-      ,[emp].[BseAllowanceLevelMasterDetailID]
 
 	  ,[com].[Name] CompanyName
 	  ,[dep].[ShortName] DeptName
@@ -106,12 +117,11 @@
 	  ,[col].[Name] CollectName
 	  ,[edu].[Name] EducationLevelName
 
-	  , ISNULL( DATEDIFF(m,[emp].Startworkingdate , CONVERT(DATE,GETDATE())),0)  KeikenFromStartWorkingMonths
+	  , ISNULL(DATEDIFF(m,[emp].Startworkingdate , CONVERT(DATE,GETDATE())),0)  KeikenFromStartWorkingMonths
 	  , ISNULL(DATEDIFF(m,[emp].ContractDate ,CONVERT(DATE,GETDATE())),0)  KeikenFromContractMonths
 	  , DATEDIFF(year, [emp].BirthDay, CONVERT(DATE,GETDATE()))- case when DATEADD(year,DATEDIFF(year, [emp].BirthDay, CONVERT(DATE,GETDATE())), BirthDay)> CONVERT(DATE,GETDATE()) then 1 else 0 end   Age
 	  , ISNULL(DATEDIFF(DD,[emp].BirthDay , CONVERT(DATE,GETDATE())),0) /362.25 AgeFull
 	  , case when DATEPART(d, [emp].BirthDay) = DATEPART(d, CONVERT(DATE,GETDATE())) AND DATEPART(m, [emp].BirthDay) = DATEPART(m, CONVERT(DATE,GETDATE())) THEN 1 ELSE 0 END IsBirthDay
-
 
   FROM [dbo].[Emps] emp 
   left outer join [dbo].[Companys]  com on emp.CurrentCompanyID = com.ID

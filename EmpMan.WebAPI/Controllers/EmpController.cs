@@ -242,7 +242,7 @@ namespace EmpMan.Web.Controllers
                 //so thang de loai tru nhan vien khong tinh vao hieu suat hoat dong
                 int month = 4;
                 //nam xu ly
-                int year = 2017;
+                int year = DateTime.Now.Year;
 
                 DateTime processingDateFrom = new DateTime(year, 1, 1);
                 DateTime processingDateTo = new DateTime(year, 12, 31);
@@ -256,8 +256,44 @@ namespace EmpMan.Web.Controllers
                 }
                 if (model != null && model.ProcessingYear.HasValue)
                 {
-                    year = model.ProcessingYear.Value.Year;
+                    year = model.ProcessingYear.Value.ToLocalTime().Year;
                 }
+                //Truong hop co thoi diem thong ke , thay the cac GETDATE() thanh ngay mong muon thong ke 
+                bool chkGetDataToDate = false;
+                string getDataToDateFrom = "GETDATE()";
+                string getDataToDateTo = "GETDATE()";
+
+                if (model.EmpFilterDataValue != null)
+                {
+                    var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
+                    if (empFilterViewModel.systemValue.ExpMonth.HasValue)
+                    {
+                        month = empFilterViewModel.systemValue.ExpMonth.Value;
+                    }
+                    if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
+                    {
+                        year = empFilterViewModel.systemValue.ProcessingYear.Value.ToLocalTime().Year;
+                    }
+                    //Truong hop co thoi diem thong ke , thay the cac GETDATE() thanh ngay mong muon thong ke 
+                    if (empFilterViewModel != null)
+                    {
+                        if (empFilterViewModel.chkGetDataToDate.HasValue)
+                        {
+                            if (empFilterViewModel.chkGetDataToDate.Value)
+                            {
+                                //co setting tri 
+                                chkGetDataToDate = true;
+                                if (empFilterViewModel.getDataToDateTo.HasValue)
+                                {
+                                    getDataToDateTo = "'" + empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd") + "'";
+                                    processingDateTo = empFilterViewModel.getDataToDateTo.Value.ToLocalTime();
+                                }
+                            }
+                        }
+                    }
+
+                }
+
                 //cau sql chinh de get data
                 string sql = @" SELECT 
                                     ID
@@ -428,13 +464,13 @@ namespace EmpMan.Web.Controllers
                                                items = grp.ToList()
                                            }).ToList();
                         break;
-                    //LTV chinh thuc da nghi viec
+                    //Nhan vien chinh thuc da nghi viec
                     case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_COUNT:
                         var listDataContractJobLeaved = getEmpListFromTopMenu(group);
                         grpData = listDataContractJobLeaved.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "LTV chính thức đã nghỉ việc",
+                                               title = "Tổng số nhân viên chính thức đã nghỉ việc",
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContractJobLeaved.Count(),
                                                items = grp.ToList()
@@ -447,7 +483,7 @@ namespace EmpMan.Web.Controllers
                         grpData = listDataContractedJobLeavedInYear.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "LTV chính thức nghỉ việc trong năm " ,
+                                               title = "Nhân viên chính thức nghỉ việc trong năm " + year,
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContractedJobLeavedInYear.Count(),
                                                items = grp.ToList()
@@ -459,19 +495,31 @@ namespace EmpMan.Web.Controllers
                         grpData = listDataTrialJobLeavedInYear.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "LTV thử việc không nhận chính thức trong năm",
+                                               title = "Nhân viên thử việc không nhận chính thức trong năm " + year,
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTrialJobLeavedInYear.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
-                        //so LTV nho hon N thang 
+                    //Lay tong danh sach nhan vien LTV thử việc không vào chính thức tu truoc cho den gio
+                    case CommonConstants.EXP_GROUP_TRIAL_JOB_LEAVED_COUNT:
+                        var listDataTrialJobLeaved = getEmpListFromTopMenu(group);
+                        grpData = listDataTrialJobLeaved.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "Tổng số nhân viên thử việc không nhận chính thức cho tới " ,
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTrialJobLeaved.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
+                    //so LTV nho hon N thang 
                     case CommonConstants.EXP_GROUP_CONTRACTED_LT_NM_MONTH_COUNT:
                         var listDataContractLTNMonth = getEmpListFromTopMenu(group);
                         grpData = listDataContractLTNMonth.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "LTV chính thức thâm niên nhỏ hơn " + listDataContractLTNMonth.FirstOrDefault().ExpMonth + " tháng", 
+                                               title = "Nhân viên chính thức thâm niên nhỏ hơn " + listDataContractLTNMonth.FirstOrDefault().ExpMonth + " tháng", 
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataContractLTNMonth.Count(),
                                                items = grp.ToList()
@@ -483,7 +531,7 @@ namespace EmpMan.Web.Controllers
                         grpData = listDataOtherEmp.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "Các nhân viên khác",
+                                               title = "Các nhân viên chính thức khác như tổng vụ,PS...",
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataOtherEmp.Count(),
                                                items = grp.ToList()
@@ -495,24 +543,37 @@ namespace EmpMan.Web.Controllers
                         grpData = listDataTransEmp.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "Phiên dịch",
+                                               title = "Nhân viên phiên dịch chính thức đang làm việc",
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTransEmp.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
-                    //LTV thu viec 
+                    //Nhan vien dang thu viec 
                     case CommonConstants.EXP_GROUP_TRIAL_COUNT:
                         var listDataTrialEmp = getEmpListFromTopMenu(group);
                         grpData = listDataTrialEmp.GroupBy(u => u.ContractedCount)
                                            .Select(grp => new
                                            {
-                                               title = "LTV thử việc",
+                                               title = "Nhân viên đang thử việc",
                                                count = grp.Count(),
                                                percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTrialEmp.Count(),
                                                items = grp.ToList()
                                            }).ToList();
                         break;
+                    //Tong so LTV thu viec trong nam 
+                    case CommonConstants.EXP_GROUP_TRIAL_IN_PROCESSING_YEAR_COUNT:
+                        var listDataTrialInProcessingYearEmp = getEmpListFromTopMenu(group);
+                        grpData = listDataTrialInProcessingYearEmp.GroupBy(u => u.ContractedCount)
+                                           .Select(grp => new
+                                           {
+                                               title = "Tổng nhân viên thử việc trong năm " + year,
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listDataTrialInProcessingYearEmp.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
+
 
                 }
 
@@ -524,44 +585,65 @@ namespace EmpMan.Web.Controllers
         private IEnumerable<EmpViewModel> getEmpListFromTopMenu(string group)
         {
             string filterSql = "";
+            
             switch (group.ToLower())
             {
-                //LTV chinh thuc dang lam viec 
+                //LTV chinh thuc dang lam viec cho toi hien tai hoac cho toi ngay chi dinh tren man hinh
                 case CommonConstants.EXP_GROUP_CONTRACTED_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,GETDATE())) ";
+                    //filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) ";
+                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) ";
                     break;
-                //LTV chinh thuc dang lam viec 
+                //Nhan vien chinh thuc da nghi viec tu truoc cho den nay
                 case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NOT NULL AND JobLeaveDate < CONVERT(DATE,GETDATE())) ";
+                    //filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NOT NULL AND JobLeaveDate < CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) ";
+                    filterSql += " AND EmpTypeMasterDetailID NOT IN(2) AND  (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  AND (JobLeaveDate IS NOT NULL AND JobLeaveDate < CONVERT(DATE,@GET_DATA_TO_DATE_TO@) ) ";
                     break;
-                //LTV dang thu viec
+                //Nhan vien DANG thu viec cho toi hien tai hoac la toi ngay ma setting tren man hinh setting
                 case CommonConstants.EXP_GROUP_TRIAL_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NULL AND (StartWorkingDate IS NOT NULL OR StartTrialDate IS NOT NULL) ";
+                    //filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NULL AND (StartWorkingDate IS NOT NULL OR StartTrialDate IS NOT NULL) ";
+                    filterSql += " AND EmpTypeMasterDetailID NOT IN (2) AND((ContractDate IS NULL AND(JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE, @GET_DATA_TO_DATE_TO@)) AND(StartTrialDate <= CONVERT(DATE, @GET_DATA_TO_DATE_TO@) AND EndTrialDate >= CONVERT(DATE, @GET_DATA_TO_DATE_TO@))) OR ((ContractDate IS NOT NULL AND ContractDate > CONVERT(DATE, @GET_DATA_TO_DATE_TO@)) AND(JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE, @GET_DATA_TO_DATE_TO@)) AND(StartTrialDate <= CONVERT(DATE, @GET_DATA_TO_DATE_TO@) AND EndTrialDate >= CONVERT(DATE, @GET_DATA_TO_DATE_TO@))))";
                     break;
-
-                //So PD 
+                //So PD dang lam viec tai thoi diem tinh toan
                 case CommonConstants.EXP_GROUP_TRANS_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID IN(2)  ";
+                    filterSql += " AND EmpTypeMasterDetailID IN(2) AND  (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) ";
                     break;
-                //So NV khác
+                //So NV khác ngoai lap trinh va phien dich
                 case CommonConstants.EXP_GROUP_OTHER_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID NOT IN (1,2)  ";
+                    filterSql += " AND EmpTypeMasterDetailID NOT IN(1,2) AND  (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  ";
                     break;
-                //Nhan vien thu viec khong vao chinh thuc trong nam 
+                //Nhan vien thu viec (khong tinh phien dich) khong vao chinh thuc trong nam tai chinh hoac cho den ngay chi dinh tren man hinh
                 case CommonConstants.EXP_GROUP_TRIAL_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND(StartTrialDate IS NOT NULL  OR StartWorkingDate IS NOT NULL) AND(JobLeaveDate  BETWEEN  '@processingDateFrom@' AND '@processingDateTo@') ";
+                    filterSql += @" AND EmpTypeMasterDetailID NOT IN(2) 
+                                            AND ContractDate IS NULL
+                                            AND(StartTrialDate IS NOT NULL  OR StartWorkingDate IS NOT NULL)
+                                            AND(JobLeaveDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE, @GET_DATA_TO_DATE_TO@))";
                     break;
-                //NV chinh thuc nghi viec trong nam
+                //Tong so Nhan vien thu viec (khong tinh phien dich) khong vao chinh thuc trong nam tai chinh hoac cho den ngay chi dinh tren man hinh
+                case CommonConstants.EXP_GROUP_TRIAL_JOB_LEAVED_COUNT:
+                    filterSql += @" AND EmpTypeMasterDetailID NOT IN(2) 
+                                            AND ContractDate IS NULL
+                                            AND (StartTrialDate IS NOT NULL  OR StartWorkingDate IS NOT NULL)
+                                            AND (JobLeaveDate  <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))";
+                    break;
+                //Tong NV chinh thuc nghi viec trong nam --khong tinh phien dich
                 case CommonConstants.EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND(JobLeaveDate  BETWEEN  '@processingDateFrom@' AND CONVERT(DATE, GETDATE())) ";
+                    filterSql += " AND EmpTypeMasterDetailID NOT IN(2) AND ContractDate IS NOT NULL AND(JobLeaveDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) ";
                     break;
 
-                //NV chinh thuc nho hon N thang 
+                //NV chinh thuc nho hon N thang (khong tinh phien dich)
                 case CommonConstants.EXP_GROUP_CONTRACTED_LT_NM_MONTH_COUNT:
-                    filterSql += " AND EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND JobLeaveDate IS NULL AND ContractDate >= DATEADD(month,-@month@, CONVERT(DATE,GETDATE())) ";
+                    filterSql += " AND EmpTypeMasterDetailID NOT IN(2) AND ContractDate IS NOT NULL AND JobLeaveDate IS NULL AND ContractDate >= DATEADD(month,-@month@, CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) ";
+                    break;
+
+                //tong so nhan vien thu viec trong nam
+                case CommonConstants.EXP_GROUP_TRIAL_IN_PROCESSING_YEAR_COUNT:
+                    filterSql += " AND   EmpTypeMasterDetailID NOT IN (2) AND((StartTrialDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE, @GET_DATA_TO_DATE_TO@)) OR(EndTrialDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE, @GET_DATA_TO_DATE_TO@)) ";
                     break;
             }
             string sql = GetAllFromViewEmpSql(null,null, filterSql);
+
+            //thay the parameter 
+            //sql = sql.Replace("@GET_DATA_TO_DATE_TO@", getDataToDateTo);
 
             var listData = _dataService.GetDbContext().Database.SqlQuery<EmpViewModel>(sql);
 
@@ -1247,21 +1329,7 @@ namespace EmpMan.Web.Controllers
             //get data 
             var model = _systemConfigService.GetByAccount(User.Identity.Name);
             int month = 4;
-            int year = 2017;
-
-            if (model.EmpFilterDataValue != null)
-            {
-                var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
-                if (empFilterViewModel.systemValue.ExpMonth.HasValue)
-                {
-                    month = empFilterViewModel.systemValue.ExpMonth.Value;
-                }
-                if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
-                {
-                    year = empFilterViewModel.systemValue.ProcessingYear.Value.Year;
-                }
-            }
-            
+            int year = DateTime.Now.Year;
             string processingDateFrom = year + "/01/01";
             string processingDateTo = year + "/12/31";
 
@@ -1274,38 +1342,127 @@ namespace EmpMan.Web.Controllers
                 year = model.ProcessingYear.Value.Year;
             }
 
-            string sql = @" SELECT @TOP_RECORD@ *
-                                --dang lam viec cho toi hien tai 	  
-                                , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,GETDATE())) THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedCount
-                                --LTV chinh thuc da nghi viec 
-                                , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND (JobLeaveDate IS NOT NULL AND JobLeaveDate < CONVERT(DATE,GETDATE()) ) THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedJobLeavedCount
-                                --LTV thu viec nhung khong vao chinh thuc
-                                , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NOT NULL AND StartTrialDate IS NOT NULL THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialJobLeavedCount
-	                            , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NULL AND (StartWorkingDate IS NOT NULL OR StartTrialDate IS NOT NULL) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialCount
-	                            , SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NOT NULL AND JobLeaveDate IS NULL AND ContractDate >= DATEADD(month,-" + month + @", CONVERT(DATE,GETDATE()))  THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedLTNMonthCount
-	                            , SUM( case when EmpTypeMasterDetailID NOT IN(1,2) THEN 1 ELSE 0 END) OVER (PARTITION BY null) OtherCount
-	                            , SUM( case when EmpTypeMasterDetailID IN(2) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TransCount
-                                --nhan vien nghi viec trong nam tai chinh da setting 
-                                , SUM( case when EmpTypeMasterDetailID IN(1) 
-                                            AND ContractDate IS NOT NULL 
-                                            AND (JobLeaveDate  BETWEEN  '" + processingDateFrom + @"' AND CONVERT(DATE,GETDATE())) THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedJobLeavedInProcessingYearCount
+            //Truong hop co thoi diem thong ke , thay the cac GETDATE() thanh ngay mong muon thong ke 
+            bool chkGetDataToDate = false;
+            string getDataToDateFrom = "GETDATE()";
+            string getDataToDateTo = "GETDATE()";
+            
+            if (model.EmpFilterDataValue != null)
+            {
+                var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
+                if (empFilterViewModel.systemValue.ExpMonth.HasValue)
+                {
+                    month = empFilterViewModel.systemValue.ExpMonth.Value;
+                }
+                if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
+                {
+                    year = empFilterViewModel.systemValue.ProcessingYear.Value.ToLocalTime().Year;
+                }
+                //Truong hop co thoi diem thong ke , thay the cac GETDATE() thanh ngay mong muon thong ke 
+                if (empFilterViewModel != null)
+                {
+                    if (empFilterViewModel.chkGetDataToDate.HasValue)
+                    {
+                        if (empFilterViewModel.chkGetDataToDate.Value)
+                        {
+                            //co setting tri 
+                            chkGetDataToDate = true;
+                            if (empFilterViewModel.getDataToDateTo.HasValue)
+                            {
+                                getDataToDateTo = "'" + empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd") + "'";
+                                processingDateTo = empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd");
+                            }
+                        }
+                    }
+                }
 
-                                --nhan vien thu viec da khong vao chinh thuc trong nam ( bao gom ca nhan vien start thu viec trong nam truoc )
-                                , SUM( case when EmpTypeMasterDetailID IN(1) 
+            }
+            
+
+            string sql = @" SELECT @TOP_RECORD@ *
+                                --LTV dang lam viec cho toi hien tai hoac toi ngay setting (tinh ca onsite , khong tinh PD va cac nhan vien khac)
+                                , SUM( case when EmpTypeMasterDetailID IN(1) AND  (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedCount
+
+                                --Số NV ngoài lập trình chính thức (không tính PD ) : tổng vụ , PS ...
+                                , SUM( case when EmpTypeMasterDetailID NOT IN(1,2) AND  (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) THEN 1 ELSE 0 END) OVER (PARTITION BY null)  OtherCount
+
+                                --So nhan vien dang onsite dai han
+                                , (SELECT COUNT(*) FROM [dbo].[GetOnisteEmpListAtDate] (@CompanyID,@DeptID,NULL,@startDate,@endDate))  OnsiteCount 
+
+                                --So NV co ngay ky HD nho hon N thang (khong tinh PHIEN DICH)
+	                            , SUM( case when EmpTypeMasterDetailID NOT IN(2) AND ContractDate IS NOT NULL AND JobLeaveDate IS NULL AND ContractDate >= DATEADD(month,-" + month + @", CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedLTNMonthCount
+
+                                --nhan vien nghi viec trong nam tai chinh da setting --khong tinh PHIEN DICH
+                                , SUM( case when EmpTypeMasterDetailID NOT IN(2) 
+                                            AND ContractDate IS NOT NULL 
+                                            AND (JobLeaveDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedJobLeavedInProcessingYearCount
+
+                                --nhan vien thu viec da khong vao chinh thuc trong nam ( bao gom ca nhan vien start thu viec trong nam truoc )--khong tinh PHIEN DICH
+                                , SUM( case when EmpTypeMasterDetailID NOT IN(2) 
                                             AND ContractDate IS NULL 
                                             AND ( StartTrialDate IS NOT NULL  OR StartWorkingDate IS NOT NULL)
-                                            AND (JobLeaveDate  BETWEEN  '" + processingDateFrom + @"' AND '" + processingDateTo + @"') THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialJobLeavedInProcessingYearCount
+                                            AND (JobLeaveDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialJobLeavedInProcessingYearCount
+                                
+                                --So Nhan vien DANG thu viec cho toi thoi diem muon xem ( khong tinh phien dich) : NV 
+                                --, SUM( case when EmpTypeMasterDetailID IN(1) AND ContractDate IS NULL AND JobLeaveDate IS NULL AND (StartWorkingDate IS NOT NULL OR StartTrialDate IS NOT NULL) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialCount
+                                , SUM( case when EmpTypeMasterDetailID NOT IN (2) 
+                                            AND (
+	                                            ( ContractDate IS NULL 
+	                                              AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) 
+	                                              AND (StartTrialDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@) AND EndTrialDate >= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))
+                                                )
+	                                            OR
+	                                            (     (ContractDate IS NOT NULL AND ContractDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) 
+	                                              AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) 
+	                                              AND (StartTrialDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@) AND EndTrialDate >= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))
+                                                )
+                                                )
 
-	                            , 0 OnsiteCount 
+                                            THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialCount
+
+                                --Tong so NV chinh thuc da nghi viec tu truoc cho den thoi diem tinh toan( khong tinh PD)
+                                , SUM( case when EmpTypeMasterDetailID NOT IN(2) AND  (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  AND (JobLeaveDate IS NOT NULL AND JobLeaveDate < CONVERT(DATE,@GET_DATA_TO_DATE_TO@) ) THEN 1 ELSE 0 END) OVER (PARTITION BY null) ContractedJobLeavedCount
+
+                                --Tong so nhan vien thu viec nhung khong vao chinh thuc (khong tinh PD)
+                                , SUM( case when EmpTypeMasterDetailID NOT IN(2) 
+                                            AND ContractDate IS NULL 
+                                            AND ( StartTrialDate IS NOT NULL  OR StartWorkingDate IS NOT NULL)
+                                            AND (JobLeaveDate  <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) THEN 1 ELSE 0 END) OVER (PARTITION BY null)  TrialJobLeavedCount
+
+                                --Tong so NV thu viec trong nam / cho toi ngay chi dinh ( khong tinh PD)
+                                , SUM( case when EmpTypeMasterDetailID NOT IN (2) 
+                                        AND ( (StartTrialDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) OR (EndTrialDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  ) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TrialInProcessingYearCount
+	                            
+                                --So nhan vien PD dang lam viec 
+                                , SUM( case when EmpTypeMasterDetailID IN(2) AND  (ContractDate IS NOT NULL AND ContractDate <= CONVERT(DATE,@GET_DATA_TO_DATE_TO@))  AND (JobLeaveDate IS NULL OR JobLeaveDate > CONVERT(DATE,@GET_DATA_TO_DATE_TO@)) THEN 1 ELSE 0 END) OVER (PARTITION BY null) TransCount
+                           
                                 , COUNT(*) OVER ()      TotalRecords
                                 , " + month + @"        ExpMonth
                                 , " + year + @"         ProcessingYear
                                 FROM ViewEmp " + filterSqlString + orderBySqlString;
 
             sql = sql.Replace("@TOP_RECORD@", sqlTopSelect);
-            sql = sql.Replace("@processingDateFrom@", processingDateFrom);
-            sql = sql.Replace("@processingDateTo@", processingDateTo);
+            sql = sql.Replace("@processingDateFrom@", "'" + processingDateFrom + "'");
+            sql = sql.Replace("@processingDateTo@", "'" +  processingDateTo + "'");
             sql = sql.Replace("@month@", month.ToString());
+            sql = sql.Replace("@GET_DATA_TO_DATE_TO@", getDataToDateTo);
+
+            sql = sql.Replace("@CompanyID", User.Identity.GetApplicationUser().CompanyID.ToString());
+            sql = sql.Replace("@DeptID", User.Identity.GetApplicationUser().DeptID.ToString());
+            sql = sql.Replace("@TeamID", "NULL");
+            sql = sql.Replace("@startDate", getDataToDateTo );
+            sql = sql.Replace("@endDate", getDataToDateTo );
+
+
+            if (chkGetDataToDate)
+            {
+                sql = sql.Replace("@chkGetDataToDate@", "1");
+            }
+            else
+            {
+                sql = sql.Replace("@chkGetDataToDate@", "0");
+            }
+            
 
             return sql;
 

@@ -99,6 +99,7 @@
     <Compile Include="ReportHelper.cs" />
     <Compile Include="StringCipher.cs" />
     <Compile Include="StringHelper.cs" />
+    <Compile Include="ViewModels\TimelineViewModel.cs" />
     <Compile Include="ViewModels\EmpFilterViewModel.cs" />
     <Compile Include="ViewModels\CodeNameViewModel.cs" />
     <Compile Include="ViewModels\ExpandableViewModel.cs" />

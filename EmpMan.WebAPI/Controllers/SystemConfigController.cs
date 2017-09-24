@@ -20,6 +20,7 @@ using System.Web.Script.Serialization;
 using Mapster;
 using System.Text;
 using System.Configuration;
+using EmpMan.Web.Infrastructure.SmsHelper;
 
 namespace EmpMan.Web.Controllers
 {
@@ -237,6 +238,11 @@ namespace EmpMan.Web.Controllers
                 }
                 else
                 {
+                    //test sms 
+                    //SmsHelper.SendeSms("", "0967808590", "test");
+                    //String[] phones = new String[] { "0000" };
+                    //String rmsg = SmsHelper.sendSpeedSMS(phones, "***", 6, "");
+
                     //tao moi neu chua ton tai 
                     CreateSystemConfigByAccount(_dataService.GetDbContext());
                     //get date theo account logon

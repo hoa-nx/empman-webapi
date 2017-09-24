@@ -50,5 +50,7 @@ namespace EmpMan.Common
         public const string IMPORT = "IMPORT";
         public const string EXPORT = "EXPORT";
 
+        public const string STATISTIC = "STATISTIC";
+
     }
 }

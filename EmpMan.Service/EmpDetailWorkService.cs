@@ -3,6 +3,7 @@ using EmpMan.Data.Infrastructure;
 using EmpMan.Data.Repositories;
 using EmpMan.Model.Models;
 using System.Linq;
+using EmpMan.Data;
 
 namespace EmpMan.Service
 {
@@ -52,6 +53,14 @@ namespace EmpMan.Service
         IEnumerable<EmpDetailWork> GetAll(string keyword);
 
         /// <summary>
+        /// Lấy các record của table dựa vào keyword va emp id
+        /// </summary>
+        /// <param name="keyword">Từ khóa tìm kiếm</param>
+        /// <param name="emp">ma nhan vien</param>
+        /// <returns></returns>
+        IEnumerable<EmpDetailWork> GetAllByEmp(string keyword, int emp);
+
+        /// <summary>
         /// Lấy danh sách có phân trang
         /// </summary>
         /// <param name="keyword">Từ khóa tìm kiếm</param>
@@ -83,6 +92,9 @@ namespace EmpMan.Service
         /// Lưu các thay đổi vào DB
         /// </summary>
         void SaveChanges();
+
+        EmpManDbContext GetDbContext();
+
     }
 
     public class EmpDetailWorkService : IEmpDetailWorkService
@@ -163,6 +175,16 @@ namespace EmpMan.Service
             return query;
         }
 
+        public IEnumerable<EmpDetailWork> GetAllByEmp(string keyword, int emp)
+        {
+            var query = _empDetailWorkRepository.GetMultiNoTracking( x => x.EmpID == emp);
+            if (!string.IsNullOrEmpty(keyword))
+                query = query.Where(x => x.Note.Contains(keyword.ToUpper()));
+
+            return query;
+        }
+        
+
         /// <summary>
         /// Lấy danh sách có phân trang
         /// </summary>
@@ -225,6 +247,11 @@ namespace EmpMan.Service
         public void SaveChanges()
         {
             _unitOfWork.Commit();
+        }
+
+        public EmpManDbContext GetDbContext()
+        {
+            return this._unitOfWork.DbContext;
         }
 
     }

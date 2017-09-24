@@ -79,6 +79,11 @@ namespace EmpMan.Model.Models
         public string CondRequired { set; get; }
 
         /// <summary>
+        /// Đối tượng tham gia seminar ( List theo ngạch bậc)(1,2,3)
+        /// </summary>
+        public string PositionIDList { set; get; }
+
+        /// <summary>
         /// Chi phí tham gia
         /// </summary>
         public decimal? Cost { set; get; }
@@ -88,6 +93,31 @@ namespace EmpMan.Model.Models
         /// </summary>
         public bool? TestRequired { set; get; }
 
+        /// <summary>
+        /// Ngày giờ hết hạn phải gửi lại danh sách
+        /// </summary>
+        public DateTime? AnsSeminarDeptDeadlineDate { set; get; }
+
+        /// <summary>
+        /// Thời gian hết hạn trong nội bộ
+        /// </summary>
+        public DateTime? AnsLocalDeadlineDate { set; get; }
+
+        /// <summary>
+        /// Đã gửi thông báo?
+        /// </summary>
+        public bool? IsNotification { set; get; }
+
+        /// <summary>
+        /// Ngày giờ hết hạn đăng ký
+        /// </summary>
+        public DateTime? ExpireDate { set; get; }
+
+        /// <summary>
+        /// đã hoàn thành chưa 
+        /// </summary>
+        public bool? IsFinished { set; get; }
+        
         /// <summary>
         /// File đính kèm
         /// </summary>

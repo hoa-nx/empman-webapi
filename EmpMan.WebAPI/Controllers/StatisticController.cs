@@ -12,10 +12,13 @@ using EmpMan.Web.Infrastructure.Extensions;
 using System.IO;
 using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using EmpMan.Common;
+using EmpMan.Web.Providers;
 
 namespace EmpMan.Web.Controllers
 {
     [RoutePrefix("api/statistic")]
+    [Authorize]
     public class StatisticController : ApiControllerBase
     {
         private IStatisticService _statisticService;
@@ -27,6 +30,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("getrevenue")]
         [HttpGet]
+        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.STATISTIC)]
         public HttpResponseMessage GetRevenueStatistic(HttpRequestMessage request, string fromDate, string toDate)
         {
             return CreateHttpResponse(request, () =>

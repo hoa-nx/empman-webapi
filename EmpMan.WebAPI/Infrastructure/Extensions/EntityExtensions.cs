@@ -1242,31 +1242,56 @@ namespace EmpMan.Web.Infrastructure.Extensions
             data.EndDate = dataVm.EndDate;
 
             data.CompanyID = dataVm.CompanyID;
+            data.IsChangeCompanyID = dataVm.IsChangeCompanyID;
             data.DeptID = dataVm.DeptID;
+            data.IsChangeDeptID = dataVm.IsChangeDeptID;
             data.TeamID = dataVm.TeamID;
+            data.IsChangeTeamID = dataVm.IsChangeTeamID;
             data.PositionID = dataVm.PositionID;
-
+            data.IsChangePositionID = dataVm.IsChangePositionID;
             data.Company2ID = dataVm.Company2ID;
+            data.IsChangeCompany2ID = dataVm.IsChangeCompany2ID;
             data.Dept2ID = dataVm.Dept2ID;
+            data.IsChangeDept2ID = dataVm.IsChangeDept2ID;
             data.Team2ID = dataVm.Team2ID;
+            data.IsChangeTeam2ID = dataVm.IsChangeTeam2ID;
             data.Position2ID = dataVm.Position2ID;
+            data.IsChangePosition2ID = dataVm.IsChangePosition2ID;
             data.WorkEmpTypeMasterID = dataVm.WorkEmpTypeMasterID;
             data.WorkEmpTypeMasterDetailID = dataVm.WorkEmpTypeMasterDetailID;
-
+            data.IsChangeWorkEmpType = dataVm.IsChangeWorkEmpType;
+            data.EmpTypeMasterID = dataVm.EmpTypeMasterID;
+            data.EmpTypeMasterDetailID = dataVm.EmpTypeMasterDetailID;
+            data.IsChangeEmpType = dataVm.IsChangeEmpType;
             data.JapaneseLevelMasterID = dataVm.JapaneseLevelMasterID;
             data.JapaneseLevelMasterDetailID = dataVm.JapaneseLevelMasterDetailID;
+            data.IsChangeJapaneseLevel = dataVm.IsChangeJapaneseLevel;
             data.BusinessAllowanceLevelMasterID = dataVm.BusinessAllowanceLevelMasterID;
             data.BusinessAllowanceLevelMasterDetailID = dataVm.BusinessAllowanceLevelMasterDetailID;
+            data.IsChangeBusinessAllowanceLevel = dataVm.IsChangeBusinessAllowanceLevel;
             data.RoomWithInternetAllowanceLevelMasterID = dataVm.RoomWithInternetAllowanceLevelMasterID;
             data.RoomWithInternetAllowanceLevelMasterDetailID = dataVm.RoomWithInternetAllowanceLevelMasterDetailID;
+            data.IsChangeRoomWithInternetAllowanceLevel = dataVm.IsChangeRoomWithInternetAllowanceLevel;
             data.RoomNoInternetAllowanceLevelMasterID = dataVm.RoomNoInternetAllowanceLevelMasterID;
-
             data.RoomNoInternetAllowanceLevelMasterDetailID = dataVm.RoomNoInternetAllowanceLevelMasterDetailID;
+            data.IsChangeRoomNoInternetAllowanceLevel = dataVm.IsChangeRoomNoInternetAllowanceLevel;
             data.BseAllowanceLevelMasterID = dataVm.BseAllowanceLevelMasterID;
             data.BseAllowanceLevelMasterDetailID = dataVm.BseAllowanceLevelMasterDetailID;
-
+            data.IsChangeBseAllowanceLevel = dataVm.IsChangeBseAllowanceLevel;
+            data.CollectMasterID = dataVm.CollectMasterID;
+            data.CollectMasterDetailID = dataVm.CollectMasterDetailID;
+            data.IsChangeCollect = dataVm.IsChangeCollect;
+            data.EducationLevelMasterID = dataVm.EducationLevelMasterID;
+            data.EducationLevelMasterDetailID = dataVm.EducationLevelMasterDetailID;
+            data.IsChangeEducationLevel = dataVm.IsChangeEducationLevel;
+            data.ContractTypeMasterID = dataVm.ContractTypeMasterID;
+            data.ContractTypeMasterDetailID = dataVm.ContractTypeMasterDetailID;
+            data.IsChangeContractType = dataVm.IsChangeContractType;
+            data.OnsiteCustomerID = dataVm.OnsiteCustomerID;
+            data.IsChangeOnsiteCustomerID = dataVm.IsChangeOnsiteCustomerID;
             data.SignDate = dataVm.SignDate;
             data.Result = dataVm.Result;
+
             data.Action = dataVm.Action;
 
             //item dùng chung-Start
@@ -2009,8 +2034,14 @@ namespace EmpMan.Web.Infrastructure.Extensions
             data.Location = dataVm.Location;
             data.Content = dataVm.Content;
             data.CondRequired = dataVm.CondRequired;
+            data.PositionIDList = dataVm.PositionIDList;
             data.Cost = dataVm.Cost;
             data.TestRequired = dataVm.TestRequired;
+            data.AnsSeminarDeptDeadlineDate = dataVm.AnsSeminarDeptDeadlineDate;
+            data.AnsLocalDeadlineDate = dataVm.AnsLocalDeadlineDate;
+            data.IsNotification = dataVm.IsNotification;
+            data.ExpireDate = dataVm.ExpireDate;
+            data.IsFinished = dataVm.IsFinished;
             data.FileID = dataVm.FileID;
             data.HaveGift = dataVm.HaveGift;
             data.IsInternalCourse = dataVm.IsInternalCourse;

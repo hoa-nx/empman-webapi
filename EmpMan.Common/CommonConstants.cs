@@ -99,10 +99,24 @@ namespace EmpMan.Common
         public const string EXP_GROUP_CONTRACTED_COUNT = "contractedcount";
         public const string EXP_GROUP_CONTRACTED_JOB_LEAVED_COUNT = "contractedjobleavedcount";
         public const string EXP_GROUP_CONTRACTED_LT_NM_MONTH_COUNT = "contractedltnmonthcount";
+        /// <summary>
+        /// So nhan vien chinh thuc ngoai tru lap trinh va phien dich
+        /// </summary>
         public const string EXP_GROUP_OTHER_COUNT = "othercount";
+        /// <summary>
+        /// So PD dang lam viec
+        /// </summary>
         public const string EXP_GROUP_TRANS_COUNT = "transcount";
+        /// <summary>
+        /// Tong so nhan vien thu viec nhung khong vao chinh thuc trong nam da setting ( khong tinh PD)
+        /// </summary>
         public const string EXP_GROUP_TRIAL_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT = "trialjobleavedinprocessingyearcount";
+        /// <summary>
+        /// Tong so nhan vien thu viec nhung khong vao chinh thuc ( khong tinh PD)
+        /// </summary>
+        public const string EXP_GROUP_TRIAL_JOB_LEAVED_COUNT = "trialjobleavedcount";
         public const string EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT = "contractedjobleavedinprocessingyearcount";
         public const string EXP_GROUP_TRIAL_COUNT = "trialcount";
+        public const string EXP_GROUP_TRIAL_IN_PROCESSING_YEAR_COUNT = "trialtntrocessingyearcount";
     }
 }

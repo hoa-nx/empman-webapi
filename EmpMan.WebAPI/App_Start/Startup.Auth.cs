@@ -39,7 +39,7 @@ namespace EmpMan.Web.App_Start
             {
                 TokenEndpointPath = new PathString("/api/oauth/token"),
                 Provider = new AuthorizationServerProvider(),
-                AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(30),
+                AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(480),
                 AllowInsecureHttp = true
             });
             app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions());
