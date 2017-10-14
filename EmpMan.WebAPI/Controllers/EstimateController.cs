@@ -7,16 +7,18 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Master;
+using EmpMan.Common.ViewModels.Models.Master;
 using System.Web.Script.Serialization;
-using EmpMan.Web.Models.Project;
+using EmpMan.Common.ViewModels.Models.Project;
 using EmpMan.Common.ViewModels;
 using EmpMan.Common;
 using Mapster;
+using EmpMan.Web.Common.ViewModels.Project;
+using EmpMan.Common.ViewModels.Models.Common;
 
 namespace EmpMan.Web.Controllers
 {
@@ -25,11 +27,13 @@ namespace EmpMan.Web.Controllers
     public class EstimateController : ApiControllerBase
     {
         private IEstimateService _dataService;
+        private IFileStorageService _dataFileService;
 
-        public EstimateController(IErrorService errorService, IEstimateService dataService) :
+        public EstimateController(IErrorService errorService, IEstimateService dataService, IFileStorageService dataFileService) :
             base(errorService)
         {
             this._dataService = dataService;
+            this._dataFileService = dataFileService;
         }
 
         [Route("getall")]
@@ -43,6 +47,9 @@ namespace EmpMan.Web.Controllers
 
                 //var listDataVm = Mapper.Map<List<EstimateViewModel>>(listData);
                 var listDataVm = listData.Adapt<List<EstimateViewModel>>();
+
+                //get attach file 
+                listDataVm = this.AddAttachtment(listDataVm);
 
                 HttpResponseMessage response = request.CreateResponse(HttpStatusCode.OK, listDataVm);
 
@@ -65,6 +72,8 @@ namespace EmpMan.Web.Controllers
 
                 //var responseData = Mapper.Map<List<Estimate>, List<EstimateViewModel>>(query);
                 var responseData = query.Adapt<List<Estimate>, List<EstimateViewModel>>();
+                //get attach file 
+                responseData = this.AddAttachtment(responseData);
 
                 var paginationSet = new PaginationSet<EstimateViewModel>()
                 {
@@ -103,6 +112,9 @@ namespace EmpMan.Web.Controllers
 
                     //var responseData = Mapper.Map<List<Estimate>, List<EstimateViewModel>>(query);
                     var responseData = query.Adapt<List<Estimate>, List<EstimateViewModel>>();
+
+                    //get attach file 
+                    responseData = this.AddAttachtment(responseData);
 
                     var paginationSet = new PaginationSet<EstimateViewModel>()
                     {
@@ -173,13 +185,13 @@ namespace EmpMan.Web.Controllers
                     Estimate newData = new Estimate();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
+
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
                     //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
 
                     //chuyen doi List<string> thanh string 
                     //OS 
@@ -370,6 +382,20 @@ namespace EmpMan.Web.Controllers
 
                 return response;
             });
+        }
+
+        private List<EstimateViewModel> AddAttachtment(List<EstimateViewModel> list)
+        {
+            var listReturn = new List<EstimateViewModel>(list);
+            foreach (EstimateViewModel item in listReturn)
+            {
+                //get thong tin file dinh kem cua ung vien tuong ung
+                var fileList = _dataFileService.GetAllByKey("Estimates", item.ID).ToList();
+                //var fileResultModel = Mapper.Map<List<FileResultViewModel>>(fileList);
+                var fileResultModel = fileList.Adapt<List<FileResultViewModel>>();
+                item.AttachmentFileLists = fileResultModel;
+            }
+            return listReturn;
         }
 
     }

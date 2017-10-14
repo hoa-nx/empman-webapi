@@ -7,13 +7,12 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Project;
-using EmpMan.Web.Models.Master;
-using EmpMan.Web.Models.Revenue;
+using EmpMan.Common.ViewModels.Models.Project;
+using EmpMan.Common.ViewModels.Models.Master;
+using EmpMan.Common.ViewModels.Models.Revenue;
 using EmpMan.Common.ViewModels;
 using System.Threading.Tasks;
 using EmpMan.Common;
@@ -224,13 +223,13 @@ namespace EmpMan.Web.Controllers
                     Target newData = new Target();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
+
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
                     //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
                     
 
                     newData.UpdateTarget(dataVm);

@@ -11,7 +11,7 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Controllers
 {
@@ -36,7 +36,7 @@ namespace EmpMan.Web.Controllers
                 IEnumerable<Function> model;
                 if (User.IsInRole("Admin"))
                 {
-                    model = _functionService.GetAll(string.Empty);
+                    model = _functionService.GetAll(string.Empty).OrderBy(p=> p.ParentId).OrderBy(p=>p.DisplayOrder);
                 }
                 else
                 {
@@ -47,7 +47,7 @@ namespace EmpMan.Web.Controllers
                 var parents = modelVm.Where(x => x.Parent == null);
                 foreach (var parent in parents)
                 {
-                    parent.ChildFunctions = modelVm.Where(x => x.ParentId == parent.ID).ToList();
+                    parent.ChildFunctions = modelVm.Where(x => x.ParentId == parent.ID).OrderBy(p => p.ParentId).OrderBy(p => p.DisplayOrder).ToList();
                 }
                 response = request.CreateResponse(HttpStatusCode.OK, parents);
 

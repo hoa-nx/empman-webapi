@@ -8,6 +8,9 @@ namespace EmpMan.Common
 {
     public class CommonConstants
     {
+        public const string BASE_API = "http://localhost:5000";
+        public const string BASE_WEB = "http://localhost:4200";
+
         public const string ProductTag = "product";
         public const string PostTag = "post";
         public const string DefaultFooterId = "default";
@@ -118,5 +121,10 @@ namespace EmpMan.Common
         public const string EXP_GROUP_CONTRACTED_JOB_LEAVED_IN_PROCESSING_YEAR_COUNT = "contractedjobleavedinprocessingyearcount";
         public const string EXP_GROUP_TRIAL_COUNT = "trialcount";
         public const string EXP_GROUP_TRIAL_IN_PROCESSING_YEAR_COUNT = "trialtntrocessingyearcount";
+        /// <summary>
+        /// Danh sach nhan vien co ngach khong phu hop voi tham nien
+        /// </summary>
+        public const string EXP_GROUP_EMP_NOT_SATISFIED_KEIKEN = "empnotsatisfiedkeiken";
+
     }
 }

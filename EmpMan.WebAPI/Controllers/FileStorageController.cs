@@ -7,11 +7,11 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.File;
+using EmpMan.Common.ViewModels.Models.File;
 using System.IO;
 using System.Web;
 using System.Net.Http.Headers;
@@ -23,6 +23,7 @@ using EmpMan.Common.ViewModels;
 using EmpMan.Common;
 using System.Text;
 using Mapster;
+using EmpMan.Common.ViewModels.Models.Common;
 
 namespace EmpMan.Web.Controllers
 {
@@ -461,13 +462,13 @@ namespace EmpMan.Web.Controllers
                     FileStorage newData = new FileStorage();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
+
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
                     //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
                     
 
                     newData.UpdateFileStorage(dataVm);

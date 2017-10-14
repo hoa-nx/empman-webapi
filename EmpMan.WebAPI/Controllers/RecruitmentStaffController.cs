@@ -7,13 +7,13 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Master;
+using EmpMan.Common.ViewModels.Models.Master;
 using System.Web.Script.Serialization;
-using EmpMan.Web.Models.Emp;
+using EmpMan.Common.ViewModels.Models.Emp;
 using OfficeOpenXml;
 using System.Threading.Tasks;
 using System.IO;
@@ -21,8 +21,12 @@ using System.Web;
 using EmpMan.Common.Enums;
 using EmpMan.Common;
 using EmpMan.Common.ViewModels;
-using EmpMan.Web.Models.File;
+using EmpMan.Common.ViewModels.Models.File;
 using Mapster;
+using EmpMan.Common.ViewModels.Models.Common;
+using System.Net.Http.Formatting;
+using Newtonsoft.Json;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Controllers
 {
@@ -31,16 +35,21 @@ namespace EmpMan.Web.Controllers
     public class RecruitmentStaffController : ApiControllerBase
     {
         private IRecruitmentStaffService _dataService;
+        private IRecruitmentInterviewService _dataRecruitmentInterviewService;
         private IFileStorageService _dataFileService;
         private IEmpService _dataEmpService;
+        private IJobSchedulerService _dataJobSchedulerService;
+        private IErrorService _errorService;
 
-        public RecruitmentStaffController(IErrorService errorService, IRecruitmentStaffService dataService , IFileStorageService dataFileService , IEmpService dataEmpService) :
+        public RecruitmentStaffController(IErrorService errorService, IRecruitmentStaffService dataService , IFileStorageService dataFileService , IEmpService dataEmpService , IRecruitmentInterviewService dataRecruitmentInterviewService, IJobSchedulerService dataJobSchedulerService) :
             base(errorService)
         {
             this._dataService = dataService;
             this._dataFileService = dataFileService;
             this._dataEmpService = dataEmpService;
-
+            this._dataRecruitmentInterviewService = dataRecruitmentInterviewService;
+            this._errorService = errorService;
+            this._dataJobSchedulerService = dataJobSchedulerService;
         }
 
         [Route("getall")]
@@ -298,7 +307,7 @@ namespace EmpMan.Web.Controllers
 											--@@không đăng ký phỏng vấn sau khi đã hết hạn ( trong table interview không có data tương ứng với ứng viên này) 
 											when DATEDIFF(MINUTE, REC.AnsRecruitDeptDeadlineDate , GETDATE()) > 0 AND REI.[RecruitmentStaffID] IS NULL THEN 10 
 											--@@chưa có lịch phỏng vấn 
-											when REC.ID IS NOT NULL AND ( RES.InterviewDate IS NULL) THEN 20 
+											when REC.ID IS NOT NULL AND ( RES.InterviewDate IS NULL AND TrialStartDate IS NULL ) THEN 20 
 											--@@có đăng ký phỏng vấn nhưng chưa tiến hành phỏng vấn (~ chờ phỏng vấn 30)
 											when REC.ID IS NOT NULL AND ( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) < 0) THEN 30 
 											--@@Chờ kết quả phỏng vấn
@@ -310,11 +319,11 @@ namespace EmpMan.Web.Controllers
 											--@@Chờ feedback sau khi đã nói chuyện DKLV 
 											when REC.ID IS NOT NULL AND ( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) > 0) AND RTRIM(LTRIM(ISNULL(RES.InterviewResult,''))) !='' AND RES.WorkingConditionTalkDate IS NOT NULL AND RES.TrialStartDate IS NULL THEN 60 
 											--@@ Đang chờ vào thử việc( co ngay thu viec >= ngay hien tai )
-											when REC.ID IS NOT NULL AND ( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) > 0) AND RTRIM(LTRIM(ISNULL(RES.InterviewResult,''))) !='' AND RES.TrialStartDate >  CONVERT(DATE,GETDATE()) THEN 70 
+											when REC.ID IS NOT NULL AND  (( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) > 0) OR  TrialStartDate IS NOT NULL)  AND RTRIM(LTRIM(ISNULL(RES.InterviewResult,''))) !='' AND RES.TrialStartDate >  CONVERT(DATE,GETDATE()) THEN 70 
 											--@@Đã vào thử việc nhưng chưa đăng ký nhân viên
-											when REC.ID IS NOT NULL AND ( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) > 0) AND RTRIM(LTRIM(ISNULL(RES.InterviewResult,''))) !='' AND RES.TrialStartDate <= CONVERT(DATE,GETDATE()) AND EMP.ID IS NULL THEN 80 
+											when REC.ID IS NOT NULL AND  (( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) > 0) OR  TrialStartDate IS NOT NULL)  AND RTRIM(LTRIM(ISNULL(RES.InterviewResult,''))) !='' AND RES.TrialStartDate <= CONVERT(DATE,GETDATE()) AND EMP.ID IS NULL THEN 80 
 											--@@Đã vào thử việc và đã đăng ký nhân viên
-											when REC.ID IS NOT NULL AND ( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) > 0) AND RTRIM(LTRIM(ISNULL(RES.InterviewResult,''))) !='' AND RES.TrialStartDate <= CONVERT(DATE,GETDATE()) AND EMP.ID IS NOT NULL THEN 90 
+											when REC.ID IS NOT NULL AND  (( RES.InterviewDate IS NOT NULL AND DATEDIFF(MINUTE, RES.InterviewDate , GETDATE()) > 0) OR  TrialStartDate IS NOT NULL)  AND RTRIM(LTRIM(ISNULL(RES.InterviewResult,''))) !='' AND RES.TrialStartDate <= CONVERT(DATE,GETDATE()) AND EMP.ID IS NOT NULL THEN 90 
 											ELSE
 											NULL
 						END 
@@ -369,8 +378,9 @@ namespace EmpMan.Web.Controllers
 
                 //var responseData = Mapper.Map<RecruitmentStaff, RecruitmentStaffViewModel>(model);
                 var responseData = model.Adapt<RecruitmentStaff, RecruitmentStaffViewModel>();
+                   
                 var response = request.CreateResponse(HttpStatusCode.OK, responseData);
-
+                
                 return response;
             });
         }
@@ -392,19 +402,21 @@ namespace EmpMan.Web.Controllers
                     RecruitmentStaff newData = new RecruitmentStaff();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
-                    //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
-                    
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
 
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
+                    //Người sở hữu dữ liệu
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
+                    
                     newData.UpdateRecruitmentStaff(dataVm);
 
                     var data = _dataService.Add(newData);
                     _dataService.SaveChanges();
+
+                    //dang ky job
+                    this.registerAlertJob("RecruitmentStaffs", data.RecruitmentStaffID, data.ID.ToString(), data,false);
 
                     response = request.CreateResponse(HttpStatusCode.Created, data);
                 }
@@ -443,6 +455,9 @@ namespace EmpMan.Web.Controllers
                     //commit data
                     _dataService.SaveChanges();
 
+                    //dang ky job
+                    this.registerAlertJob("RecruitmentStaffs", dataFromDb.RecruitmentStaffID, dataFromDb.ID.ToString(), dataFromDb, false);
+
                     var responseData = Mapper.Map<RecruitmentStaff, RecruitmentStaffViewModel>(dataFromDb);
                     response = request.CreateResponse(HttpStatusCode.Created, responseData);
                 }
@@ -452,7 +467,31 @@ namespace EmpMan.Web.Controllers
 
         private void UpdateRecruitmentInterviewRelationData(RecruitmentStaffViewModel dataVm)
         {
-            if(dataVm!=null  && dataVm.InterviewDate.HasValue)
+            string interviewDate = "NULL";
+            string interviewRoom = "NULL";
+
+            if(dataVm != null && dataVm.InterviewDate.HasValue)
+            {
+                interviewDate = "'" +  dataVm.InterviewDate.Value.ToString() + "'" ;
+            }
+            if (dataVm != null && !string.IsNullOrEmpty(dataVm.InterviewRoom))
+            {
+                interviewRoom = "N'" + dataVm.InterviewRoom +"'";
+            }
+            string sql = @" UPDATE RecruitmentInterviews SET ScheduleInterviewDate=@interviewDate@
+                            ,   ActualInterviewDate = @interviewDate@
+                            ,   ScheduleInterviewRoom = @interviewRoom@
+                            ,   ActualInterviewRoom = @interviewRoom@
+                            WHERE 
+                                RecruitmentID = N'" + dataVm.RecruitmentID + @"' AND RecruitmentStaffID = N'" + dataVm.RecruitmentStaffID + @"'"
+                            ;
+            sql = sql.Replace("@interviewDate@", interviewDate);
+            sql = sql.Replace("@interviewRoom@", interviewRoom);
+
+            _dataService.GetDbContext().Database.ExecuteSqlCommand(sql);
+
+            /*
+            if (dataVm!=null  && dataVm.InterviewDate.HasValue)
             {
                 string sql = @" UPDATE RecruitmentInterviews SET ScheduleInterviewDate='" + dataVm.InterviewDate + @"'
                 ,ActualInterviewDate = '" + dataVm.InterviewDate + @"'
@@ -464,6 +503,7 @@ namespace EmpMan.Web.Controllers
 
                 _dataService.GetDbContext().Database.ExecuteSqlCommand(sql);
             }
+            */
 
         }
         
@@ -486,6 +526,8 @@ namespace EmpMan.Web.Controllers
 
                     var oldDataFromDb = _dataService.Delete(id);
                     _dataService.SaveChanges();
+                    //XOA CAC JOB DA DANG KY 
+                    this.registerAlertJob("RecruitmentStaffs", oldDataFromDb.RecruitmentStaffID, oldDataFromDb.ID.ToString(), oldDataFromDb, true);
 
                     var responseData = Mapper.Map<RecruitmentStaff, RecruitmentStaffViewModel>(oldDataFromDb);
 
@@ -513,7 +555,11 @@ namespace EmpMan.Web.Controllers
                     var listData = new JavaScriptSerializer().Deserialize<List<int>>(checkedItems);
                     foreach (var item in listData)
                     {
-                        _dataService.Delete(item);
+                        var oldDataFromDb = _dataService.Delete(item);
+
+                        //XOA CAC JOB DA DANG KY 
+                        this.registerAlertJob("RecruitmentStaffs", oldDataFromDb.RecruitmentStaffID, oldDataFromDb.ID.ToString(), oldDataFromDb, true);
+
                     }
 
                     _dataService.SaveChanges();
@@ -596,6 +642,90 @@ namespace EmpMan.Web.Controllers
                         //tao user
                         _dataService.Add(data);
                         
+                        addedCount++;
+                    }
+                    _dataService.SaveChanges();
+                }
+            }
+            return Request.CreateResponse(HttpStatusCode.OK, "Đã import " + addedCount + " dòng thành công.");
+        }
+
+        /// <summary>
+        /// Import thong tin nhanv ien tham gia khoa huan luyen
+        /// </summary>
+        /// <returns></returns>
+        [Route("importtrainer")]
+        [HttpPost]
+        [Permission(Action = FunctionActions.CREATE, Function = FunctionConstants.RECRUITMENT_STAFF)]
+        public async Task<HttpResponseMessage> ImportTrainer()
+        {
+            if (!Request.Content.IsMimeMultipartContent())
+            {
+                Request.CreateErrorResponse(HttpStatusCode.UnsupportedMediaType, "Định dạng không được máy chủ hỗ trợ");
+            }
+
+            var root = HttpContext.Current.Server.MapPath("~/UploadedFiles/Excels");
+            if (!Directory.Exists(root))
+            {
+                Directory.CreateDirectory(root);
+            }
+
+            var provider = new MultipartFormDataStreamProvider(root);
+            var result = await Request.Content.ReadAsMultipartAsync(provider);
+
+            //Mã lần tuyển dụng
+            string recruitmentID = "";
+            //Loại tuyen dung huan luyen
+            int recruitmentType = 1;
+
+            if (result.FormData["recruitmentID"] == null)
+            {
+                Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bạn chưa chọn mã tuyển dụng.");
+            }
+            else
+            {
+                recruitmentID = result.FormData["recruitmentID"].ToString();
+            }
+
+            if (result.FormData["recruitmentType"] == null)
+            {
+                Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bạn chưa chọn loại hồ sơ để import.");
+            }
+
+            //Upload files
+            int addedCount = 0;
+            int.TryParse(result.FormData["recruitmentType"], out recruitmentType);
+
+
+
+            foreach (MultipartFileData fileData in result.FileData)
+            {
+                if (string.IsNullOrEmpty(fileData.Headers.ContentDisposition.FileName))
+                {
+                    return Request.CreateResponse(HttpStatusCode.NotAcceptable, "Yêu cầu không đúng định dạng");
+                }
+                string fileName = fileData.Headers.ContentDisposition.FileName;
+                if (fileName.StartsWith("\"") && fileName.EndsWith("\""))
+                {
+                    fileName = fileName.Trim('"');
+                }
+                if (fileName.Contains(@"/") || fileName.Contains(@"\"))
+                {
+                    fileName = Path.GetFileName(fileName);
+                }
+
+                var fullPath = Path.Combine(root, fileName);
+                File.Copy(fileData.LocalFileName, fullPath, true);
+
+                //insert to DB
+                var listRecruitmentStaffs = this.ReadEmpTrainerFromExcel(fullPath, recruitmentID, recruitmentType);
+                if (listRecruitmentStaffs.Count > 0)
+                {
+                    foreach (var data in listRecruitmentStaffs)
+                    {
+                        //tao user
+                        _dataService.Add(data);
+
                         addedCount++;
                     }
                     _dataService.SaveChanges();
@@ -724,6 +854,87 @@ namespace EmpMan.Web.Controllers
             }
         }
 
+        /// <summary>
+        /// Nhap thong tin huan luyen tu file excel 
+        /// </summary>
+        /// <param name="fullPath"></param>
+        /// <param name="recruitmentID"></param>
+        /// <param name="recruitmentType"></param>
+        /// <returns></returns>
+        private List<RecruitmentStaff> ReadEmpTrainerFromExcel(string fullPath, string recruitmentID, int recruitmentType)
+        {
+            using (var package = new ExcelPackage(new FileInfo(fullPath)))
+            {
+                ExcelWorksheet workSheet = package.Workbook.Worksheets[1];
+                List<RecruitmentStaff> listRecruitmentStaff = new List<RecruitmentStaff>();
+                RecruitmentStaffViewModel recruitmentStaffViewModel;
+                RecruitmentStaff recruitmentStaff;
+                bool skipRow = false;
+
+                for (int i =10; i <= workSheet.Dimension.End.Row; i++)
+                {
+                    skipRow = false;
+                    //check xem co doc dong khong phai doi tuong
+                    string name = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.FullName].Text.ToString();
+                    int no = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.No].Value.ToInt(0);
+
+                    //DateTime? requestInterviewDate = workSheet.Cells[i, (int)RecruitmentStaffImportColumnEnum.RequestInterviewDate].Value.ToDateTime();
+
+                    if (string.IsNullOrEmpty(name.Trim()) || no == 0 )
+                    {
+                    //bo qua qua khong doc dong nay 
+                        skipRow = true;
+                    }
+                    if (skipRow == false)
+                    {
+                        recruitmentStaffViewModel = new RecruitmentStaffViewModel();
+                        recruitmentStaff = new RecruitmentStaff();
+
+                        recruitmentStaffViewModel.RecruitmentID = recruitmentID;
+                        recruitmentStaffViewModel.RecruitmentStaffID = recruitmentID + "_" + workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.No].Value.ToInt(i-10);
+                        recruitmentStaffViewModel.Name = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.FullName].Text.ToString();
+                        recruitmentStaffViewModel.ShortName = recruitmentStaffViewModel.Name;
+                        recruitmentStaffViewModel.FullName = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.FullName].Text.ToString();
+                        recruitmentStaffViewModel.BirthDay = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.BirthDay].Value.ToDateTime();
+
+                        int gender = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.Gender].Value.ToString().ToInt(0);
+                        if (gender == 1)
+                        {
+                            recruitmentStaffViewModel.Gender = true;
+                        }
+                        else
+                        {
+                            recruitmentStaffViewModel.Gender = false;
+                        }
+
+                        recruitmentStaffViewModel.RecruitmentTypeMasterID = (int)MasterKbnEnum.RecruitmentType;
+                        recruitmentStaffViewModel.RecruitmentTypeMasterDetailID = recruitmentType;
+
+                        recruitmentStaffViewModel.ProfessionalKbn = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.ProgrammingLanguage].Text.ToString();
+                        recruitmentStaffViewModel.EducationLevel = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.EducationLevel].Text.ToString();
+                        recruitmentStaffViewModel.CollectName = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.CollectName].Text.ToString();
+                        recruitmentStaffViewModel.EducationType = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.EducationType].Text.ToString();
+                        recruitmentStaffViewModel.Grade = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.Grade].Text.ToString();
+                                                
+                        recruitmentStaffViewModel.Comment1 = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.Comment1].Text.ToString();
+                        recruitmentStaffViewModel.Comment2 = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.Comment2].Text.ToString();
+                        recruitmentStaffViewModel.GradeTestRound1 = workSheet.Cells[i, (int)RecruitmentStaffTrainerImportColumnEnum.GradeTestRound1].Value.ToDecimal(0);
+                        
+                        recruitmentStaffViewModel.AccountData = User.Identity.GetApplicationUser().Email;
+
+                        recruitmentStaffViewModel.DataStatus = (int)DataStatusEnum.REC_INTERVIEW_UNRIGISTER;
+                        recruitmentStaffViewModel.Status = true;
+
+                        recruitmentStaff.UpdateRecruitmentStaff(recruitmentStaffViewModel);
+                        listRecruitmentStaff.Add(recruitmentStaff);
+                    }
+
+                }
+                return listRecruitmentStaff;
+            }
+        }
+
+
         [Route("getallautocompletedata")]
         [HttpGet]
         [Permission(Action = FunctionActions.READ, Function = FunctionConstants.RECRUITMENT_STAFF)]
@@ -742,7 +953,204 @@ namespace EmpMan.Web.Controllers
                 return response;
             });
         }
+        /// <summary>
+        /// Dang ky job
+        /// </summary>
+        /// <param name="table">Ten bang</param>
+        /// <param name="tableKey">Khoa cua du lieu</param>
+        /// <param name="tableKeyId">Khoa </param>
+        /// <param name="dataRecruitmentStaff">data phong van</param>
+        private  void registerAlertJob(string table, string tableKey, string tableKeyId, RecruitmentStaff dataRecruitmentStaff , bool isDeleteAction)
+        {
+            //ney nhu data phong van khong co nguoi dang ky thi xoa neu nhu da dang ky truoc do 
+            if (!dataRecruitmentStaff.InterviewDate.HasValue || string.IsNullOrEmpty(dataRecruitmentStaff.InterviewRoom))
+            {
+                //xoa toan bo thong tin PV cua ung vien do
+                this.deleteAlertJob(((int)JobTypeEnum.DevInterviewDateNotify).ToString(), table, tableKey, null);
+            }
 
+            //lay danh sach dang ky phong van
+            var recInterviewStaffList = this._dataRecruitmentInterviewService.GetInterviewStaffByRecruitmentStaffForJob(dataRecruitmentStaff.RecruitmentID, dataRecruitmentStaff.RecruitmentStaffID);
+            foreach (var item in recInterviewStaffList)
+            {
+                tableKeyId = item.RegInterviewEmpID.ToString(); //ma NV dang ky phong van 
+
+                if (isDeleteAction)
+                {
+                    //delete job
+                    this.deleteAlertJob(((int)JobTypeEnum.DevInterviewDateNotify).ToString(), table, tableKey, null);
+                }
+                else
+                {
+                    if (item.ScheduleInterviewDate.HasValue && (!string.IsNullOrEmpty(item.ScheduleInterviewRoom)))
+                    {
+                        JobSchedulerViewModel model = new JobSchedulerViewModel();
+                        //loop qua tung nguoi dang ky job
+                        //check xem da co ton tai hay chua ?
+                        
+                        var jobData = this._dataJobSchedulerService.GetByTableKey(((int)JobTypeEnum.DevInterviewDateNotify).ToString(),table, tableKey, tableKeyId).ToList().FirstOrDefault();
+                        model = jobData.Adapt<JobScheduler, JobSchedulerViewModel>();
+
+                        if (jobData != null && !string.IsNullOrEmpty(jobData.TableNameRelation))
+                        {
+                            //chua ton tai thi tao moi 
+                            model.JobType = ((int)JobTypeEnum.DevInterviewDateNotify).ToString();
+                            model.ScheduleRunJobDate = item.ScheduleInterviewDate;
+                            model.EventDate = item.ScheduleInterviewDate;
+                            model.EventUser = item.Name;
+                            model.ToNotiEmailList = item.WorkingEmail;
+                            model.SMSToNumber = item.PhoneNumber1;
+                            model.LocationEvent = item.ScheduleInterviewRoom;
+                        }
+                        else
+                        {
+                            model = new JobSchedulerViewModel();
+                            //chua ton tai thi tao moi 
+                            model.JobType = ((int)JobTypeEnum.DevInterviewDateNotify).ToString();
+                            model.Name = "Thông báo lịch phỏng vấn";
+                            model.TableNameRelation = table;
+                            model.TableKey = tableKey;
+                            model.TableKeyID = tableKeyId;
+                            model.ScheduleRunJobDate = item.ScheduleInterviewDate;
+                            model.EventDate = item.ScheduleInterviewDate;
+                            model.EventUser = item.Name;
+                            model.FromEmail = "";
+                            model.ToNotiEmailList = item.WorkingEmail;
+                            model.CcNotiEmailList = "";
+                            model.BccNotiEmailList = "";
+                            model.SMSFromNumber = "";
+                            model.SMSToNumber = item.PhoneNumber1;
+                            //alertJob.SMSContent = "";
+                            //alertJob.JobContent = "";.
+                            model.JobStatus = 0;
+                            //alertJob.ActualRunJobDate="";
+                            model.TemplateID = (int)JobTypeEnum.DevInterviewDateNotify;
+                            model.LocationEvent = item.ScheduleInterviewRoom;
+                            model.Note = "Tạo tự động";
+
+                        }
+                        //goi api thuc thi cap nhat
+                        var callApi = HttpClientHelper<JobSchedulerViewModel>.PostApiUseHttpClient("/api/jobscheduler/findregister", model);
+
+                    }
+                    else
+                    {
+                        //delete
+                        this.deleteAlertJob(((int)JobTypeEnum.DevInterviewDateNotify).ToString(),table, tableKey, tableKeyId);
+
+                    }//if
+
+                }//if delete
+
+            }//for
+        }
+
+        /// <summary>
+        /// Dang ky alert sms job ve thong bao cho cap quan ly nhan vien sap nghi viec
+        /// </summary>
+        /// <param name="table">Ten bang</param>
+        /// <param name="tableKey">Khoa cua du lieu</param>
+        /// <param name="tableKeyId">Khoa </param>
+        /// <param name="dataRecruitmentStaff">data phong van</param>
+        private void registerAlertDevJobLeavedDateNotify(string table, string tableKey, string tableKeyId, Emp itemData, bool isDeleteAction)
+        {
+            //goi api thuc thi get data
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["staff"] = itemData.ID.ToString();
+            query["includeManager"] = "1"; //lay ca thong tin cua manager
+            query["otherStaff"] = "";
+
+            string queryString = query.ToString();
+            var notifyDataList = HttpClientHelper<EmpViewModel>.GetApiUseHttpClientRetList("/api/emp/getalertlistofstaff?" + queryString);
+
+            foreach (var item in notifyDataList)
+            {
+                tableKeyId = item.ID.ToString(); //ma nhan vien
+
+                if (isDeleteAction || !itemData.JobLeaveDate.HasValue)
+                {
+                    //delete job
+                    this.deleteAlertJob(((int)JobTypeEnum.DevJobLeavedDateNotify).ToString(),table, tableKey, tableKeyId);
+                }
+                else
+                {
+                    //truong hop co ngay ket thuc trial va chua co ky HD va ngay ket thuc thu viec phai lon hon ngay hien tai
+                    if (itemData.JobLeaveDate.HasValue && (itemData.JobLeaveDate.Value.Date >= DateTime.Now.Date) )
+                    {
+                        JobSchedulerViewModel model = new JobSchedulerViewModel();
+                        //loop qua tung nguoi dang ky job
+                        //check xem da co ton tai hay chua ?
+
+                        var jobData = this._dataJobSchedulerService.GetByTableKey(((int)JobTypeEnum.DevJobLeavedDateNotify).ToString(),table, tableKey, tableKeyId).ToList().FirstOrDefault();
+                        model = jobData.Adapt<JobScheduler, JobSchedulerViewModel>();
+
+                        if (jobData != null && !string.IsNullOrEmpty(jobData.TableNameRelation))
+                        {
+                            //chua ton tai thi tao moi 
+                            model.ScheduleRunJobDate = itemData.JobLeaveDate;//ngay nghi viec nhan vien
+                            model.EventDate = itemData.JobLeaveDate;
+                            model.ToNotiEmailList = item.WorkingEmail; //email cua nguoi se nhan tin nhan
+                            model.SMSToNumber = item.PhoneNumber1;
+                            model.LocationEvent = "";
+                        }
+                        else
+                        {
+                            model = new JobSchedulerViewModel();
+                            //chua ton tai thi tao moi 
+                            model.JobType = ((int)JobTypeEnum.DevJobLeavedDateNotify).ToString();
+                            model.Name = "Thông báo sắp tới ngày nghỉ việc của NV";
+                            model.TableNameRelation = table;
+                            model.TableKey = tableKey;
+                            model.TableKeyID = tableKeyId;
+                            model.ScheduleRunJobDate = itemData.EndTrialDate;
+                            model.EventDate = itemData.EndTrialDate;
+                            model.EventUser = itemData.FullName;
+                            model.FromEmail = "";
+                            model.ToNotiEmailList = item.WorkingEmail;
+                            model.CcNotiEmailList = "";
+                            model.BccNotiEmailList = "";
+                            model.SMSFromNumber = "";
+                            model.SMSToNumber = item.PhoneNumber1;
+                            //model.SMSContent = "";
+                            //model.JobContent = "";.
+                            model.JobStatus = 0;
+                            //model.ActualRunJobDate="";
+                            model.TemplateID = (int)JobTypeEnum.DevJobLeavedDateNotify;
+                            model.LocationEvent = "";
+                            model.Note = "Tạo tự động";
+
+                        }
+
+                        var callApi = HttpClientHelper<JobSchedulerViewModel>.PostApiUseHttpClient("/api/jobscheduler/findregister", model);
+
+                    }
+                    else
+                    {
+                        //delete neu nhu khong con setting ngay nghi viec
+                        this.deleteAlertJob(((int)JobTypeEnum.DevJobLeavedDateNotify).ToString(),table, tableKey, tableKeyId);
+
+                    }//if
+
+                }//if delete
+
+            }//for
+        }
+        /// <summary>
+        /// Xoa thong tin job
+        /// </summary>
+        /// <param name="table">ten table</param>
+        /// <param name="tableKey">ID cua nguoi duoc phong van</param>
+        /// <param name="tableKeyId">ID cua nguoi dang phong van</param>
+        private void deleteAlertJob(string jobType , string table, string tableKey, string tableKeyId)
+        {
+            //get thong tin job
+            var jobData = this._dataJobSchedulerService.GetByTableKey(jobType,table, tableKey, tableKeyId).ToList().FirstOrDefault();
+            if (jobData != null)
+            {
+                this._dataJobSchedulerService.Delete(jobData.ID);
+                this._dataJobSchedulerService.SaveChanges();
+            }
+        }
 
     }
 }

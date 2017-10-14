@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using EmpMan.Model.Models;
-using EmpMan.Web.Models;
-using EmpMan.Web.Models.Common;
-using EmpMan.Web.Models.Emp;
-using EmpMan.Web.Models.File;
-using EmpMan.Web.Models.Master;
-using EmpMan.Web.Models.Project;
-using EmpMan.Web.Models.Revenue;
+using EmpMan.Common.ViewModels.Models.Common;
+using EmpMan.Common.ViewModels.Models.Emp;
+using EmpMan.Common.ViewModels.Models.File;
+using EmpMan.Common.ViewModels.Models.Master;
+using EmpMan.Common.ViewModels.Models.Project;
+using EmpMan.Common.ViewModels.Models.Revenue;
+using EmpMan.Common.ViewModels.Models.Post;
+using EmpMan.Common.ViewModels.Models.Product;
+using EmpMan.Common.ViewModels.Models;
+using EmpMan.Web.Common.ViewModels.Project;
 
 namespace EmpMan.Web.Mappings
 {

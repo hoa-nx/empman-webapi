@@ -7,11 +7,11 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Emp;
+using EmpMan.Common.ViewModels.Models.Emp;
 using System.Threading.Tasks;
 using EmpMan.Common.Exceptions;
 using EmpMan.Common.ViewModels;
@@ -25,6 +25,7 @@ using System.Web.Http.ModelBinding;
 using EmpMan.Web.Infrastructure.CustomAttribute;
 using Mapster;
 using System.Web.Script.Serialization;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Controllers
 {
@@ -34,17 +35,19 @@ namespace EmpMan.Web.Controllers
     {
         private IEmpService _dataService;
         private ISystemConfigService _systemConfigService;
+        private IJobSchedulerService _dataJobSchedulerService;
 
-        public EmpController(IErrorService errorService, IEmpService dataService , ISystemConfigService systemConfigService) :
+        public EmpController(IErrorService errorService, IEmpService dataService , ISystemConfigService systemConfigService, IJobSchedulerService dataJobSchedulerService) :
             base(errorService)
         {
             this._dataService = dataService;
             this._systemConfigService = systemConfigService;
+            this._dataJobSchedulerService = dataJobSchedulerService;
         }
 
         [Route("getall")]
         [HttpGet]
-        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD)]
+        //[Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD + "," + FunctionConstants.RECRUITMENT_STAFF)]
         public HttpResponseMessage GetAll(HttpRequestMessage request)
         {
             return CreateHttpResponse(request, () =>
@@ -62,7 +65,7 @@ namespace EmpMan.Web.Controllers
 
                 //HttpResponseMessage response = request.CreateResponse(HttpStatusCode.OK, listDataVm);
 
-                var listData = _dataService.GetAll();
+                var listData = _dataService.GetAll().OrderBy(x => x.FullName);
 
                 //var listDataVm = Mapper.Map<List<EmpViewModel>>(listData);
                 var listDataVm = listData.Adapt<List<EmpViewModel>>();
@@ -72,9 +75,59 @@ namespace EmpMan.Web.Controllers
             });
         }
 
-        [Route("getallfromview")]
+        /// <summary>
+        /// Danh sach cac nguoi can thong bao cua nhanv ien
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [Route("getalertlistofstaff")]
         [HttpGet]
         [Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD)]
+        public HttpResponseMessage GetLeaderOfStaff(HttpRequestMessage request, int staff, int includeManager , [ModelBinder(typeof(CommaDelimitedCollectionModelBinder))]IEnumerable<string> otherStaff)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                string filterSqlString = _systemConfigService.getEmpSqlFilter(User.Identity.Name, false);
+                string orderBySqlString = _systemConfigService.getEmpSqlOrderBy(User.Identity.Name, true, "", false);
+                //chi lay danh sach CHUA NGHI VIEC
+                string sql = @" SELECT * 
+                                FROM ViewEmp 
+                                WHERE ID IN ( SELECT LEA.ID --leader
+                                            FROM 
+                                            EMPS EMP LEFT OUTER JOIN TEAMS TEA ON EMP.CurrentTeamID = TEA.ID 
+                                            LEFT OUTER JOIN EMPS LEA  ON TEA.TopLeaderID = LEA.ID
+                                            WHERE EMP.ID = @EmpID@  AND LEA.ID IS NOT NULL
+
+                                            UNION 
+
+                                            SELECT MAN.ID --manager
+                                            FROM 
+                                            EMPS EMP LEFT OUTER JOIN DEPTS DEP ON EMP.CurrentDeptID = DEP.ID 
+                                            LEFT OUTER JOIN EMPS MAN  ON DEP.TopManagerID = MAN.ID
+                                            WHERE @IncludeManager@ AND EMP.ID = @EmpID@ AND MAN.ID IS NOT NULL ) AND ID != @EmpID@ AND (JobLeaveDate IS NULL OR JobLeaveDate >= CONVERT(DATE,GETDATE()))" + filterSqlString ;
+
+                if (otherStaff != null && otherStaff.Count() > 0)
+                {
+                    sql += " UNION ALL SELECT * FROM ViewEmp WHERE ID IN (" + string.Join(",", otherStaff.ToArray()) + ") AND ID != @EmpID@   AND (JobLeaveDate IS NULL OR JobLeaveDate >= CONVERT(DATE,GETDATE())) " + filterSqlString;
+                }
+
+                sql = sql.Replace(" @EmpID@", staff.ToString());
+                sql = sql.Replace(" @IncludeManager@", " 1 = " + includeManager.ToString());
+
+                var listData = _dataService.GetDbContext().Database.SqlQuery<EmpViewModel>(sql);
+
+                //var listDataVm = Mapper.Map<List<EmpViewModel>>(listData);
+                var listDataVm = listData.Adapt<List<EmpViewModel>>();
+
+                HttpResponseMessage response = request.CreateResponse(HttpStatusCode.OK, listDataVm);
+
+                return response;
+            });
+        }
+
+        [Route("getallfromview")]
+        [HttpGet]
+        //[Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD)]
         public HttpResponseMessage GetAllFromViewEmp(HttpRequestMessage request)
         {
             return CreateHttpResponse(request, () =>
@@ -233,8 +286,10 @@ namespace EmpMan.Web.Controllers
                 int totalRow = 0;
 
                 string addWhereSql = "";
-                //phan sql dieu kien loc du lieu chung 
+                //phan sql dieu kien loc du lieu chung co bao gom WHERE 1=1 
                 string filterSqlString = _systemConfigService.getEmpSqlFilter(User.Identity.Name, true, addWhereSql);
+                //phan sql dieu kien loc du lieu chung KHONG bao gom WHERE 1=1 
+                string filterSqlStringNoWhereStringAppend = _systemConfigService.getEmpSqlFilter(User.Identity.Name, false, addWhereSql);
                 //phan sql dung de sort du lieu chung
                 string orderBySqlString = _systemConfigService.getEmpSqlOrderBy(User.Identity.Name, true, "", false);
                 //lay cac thong tin setting cua he thong
@@ -294,9 +349,42 @@ namespace EmpMan.Web.Controllers
 
                 }
 
+                //sql de lay cac nhan vien co ngach khong phu hop voi tham nien 
+                string sqlNotSatisfiedWithKeiken = @" SELECT 
+	                                                        VEM.* 
+                                                        ,	TMP.NEWPOSITIONNAME
+                                                        FROM 
+                                                            ViewEmp VEM 
+                                                            INNER JOIN 
+                                                            (
+                                                            SELECT 
+	                                                            VEM.ID
+	                                                            , VEM.FULLNAME 
+	                                                            , VEM.CURRENTPOSITIONID
+	                                                            , VEM.KEIKENFROMCONTRACTMONTHS
+	                                                            , MAX(POS.ID) NEWPOSITIONID
+	                                                            , MAX(POS.NAME) NEWPOSITIONNAME
+	                                                            , MAX(POS.MONTHAVG)	NEWPOSITIONMONTHAVG
+
+                                                            FROM VIEWEMP VEM 
+	                                                            LEFT OUTER JOIN Positions PO2 ON VEM.CurrentPositionID = PO2.ID 
+	                                                            ,(SELECT * FROM POSITIONS WHERE MONTHAVG >0 ) POS 
+                                                            WHERE 
+	                                                            VEM.KEIKENFROMCONTRACTMONTHS >= POS.MONTHAVG 
+                                                            AND VEM.CURRENTPOSITIONID > POS.ID 
+                                                            AND PO2.MonthAvg <  POS.MONTHAVG
+                                                            " + filterSqlStringNoWhereStringAppend + @"
+                                                            GROUP BY 
+	                                                                VEM.ID
+	                                                            , VEM.FULLNAME 
+	                                                            , VEM.CURRENTPOSITIONID
+	                                                            , VEM.KEIKENFROMCONTRACTMONTHS
+                                                            ) TMP
+                                                            ON VEM.ID = TMP.ID ";
+
                 //cau sql chinh de get data
                 string sql = @" SELECT 
-                                    ID
+                                     ID
                                     ,FULLNAME
                                     ,GENDER
                                     ,PHONENUMBER1
@@ -328,10 +416,11 @@ namespace EmpMan.Web.Controllers
                                     End   KeikenFromContractYearBunrui
                                     ,COUNT(*) OVER ()   TotalRecords
                                     , " + month + @"    ExpMonth
-                                    , " + year + @"    ProcessingYear
-                                FROM ViewEmp " + filterSqlString + orderBySqlString;
+                                    , " + year + @"     ProcessingYear
+                                FROM ViewEmp  " ;
 
-                var listData = _dataService.GetDbContext().Database.SqlQuery<EmpViewModel>(sql);
+                
+                var listData = _dataService.GetDbContext().Database.SqlQuery<EmpViewModel>(sql + " " + filterSqlString + orderBySqlString);
 
                 totalRow = listData.Count();
 
@@ -574,6 +663,20 @@ namespace EmpMan.Web.Controllers
                                            }).ToList();
                         break;
 
+                    case CommonConstants.EXP_GROUP_EMP_NOT_SATISFIED_KEIKEN:
+                        listData = _dataService.GetDbContext().Database.SqlQuery<EmpViewModel>(sqlNotSatisfiedWithKeiken + " " + orderBySqlString);
+
+                        totalRow = listData.Count();
+
+                        grpData = listData.GroupBy(u => u.NewPositionName)
+                                           .Select(grp => new
+                                           {
+                                               title = string.IsNullOrEmpty(grp.Key) ? "Chưa setting" : grp.Key,
+                                               count = grp.Count(),
+                                               percent = listData.Count() == 0 ? (float)0 : (float)grp.Count() / (float)listData.Count(),
+                                               items = grp.ToList()
+                                           }).ToList();
+                        break;
 
                 }
 
@@ -639,6 +742,12 @@ namespace EmpMan.Web.Controllers
                 case CommonConstants.EXP_GROUP_TRIAL_IN_PROCESSING_YEAR_COUNT:
                     filterSql += " AND   EmpTypeMasterDetailID NOT IN (2) AND((StartTrialDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE, @GET_DATA_TO_DATE_TO@)) OR(EndTrialDate  BETWEEN  @processingDateFrom@ AND CONVERT(DATE, @GET_DATA_TO_DATE_TO@)) ";
                     break;
+
+                //danh sach cac nhan vien co ngach khong phu hop voi tham nien ( de tham khao)
+                case CommonConstants.EXP_GROUP_EMP_NOT_SATISFIED_KEIKEN:
+
+                    break;
+
             }
             string sql = GetAllFromViewEmpSql(null,null, filterSql);
 
@@ -710,7 +819,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("getallautocompletedata")]
         [HttpGet]
-        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD)]
+       // [Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD)]
         public HttpResponseMessage GetAllAutoCompleteData(HttpRequestMessage request)
         {
             return CreateHttpResponse(request, () =>
@@ -726,9 +835,27 @@ namespace EmpMan.Web.Controllers
                 return response;
             });
         }
+
+        [Route("getallforjob")]
+        [HttpGet]
+        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.JOB_SCHEDULER)]
+        public HttpResponseMessage GetAllEmpForJob(HttpRequestMessage request)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                    string sql = @" SELECT Id , FullName ,ISNULL(WorkingEmail,'') WorkingEmail, ISNULL(PhoneNumber1,'0') PhoneNumber FROM EMPS ";
+
+                var kekka = _dataService.GetDbContext().Database.SqlQuery<EmpForJobViewModel>(sql).ToList();
+
+                var response = request.CreateResponse(HttpStatusCode.OK, kekka);
+
+                return response;
+            });
+        }
+
         [Route("getallcodenamemodel")]
         [HttpGet]
-        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD)]
+        //[Permission(Action = FunctionActions.READ, Function = FunctionConstants.EMP_CARD  + "," + FunctionConstants.RECRUITMENT_STAFF)]
         public HttpResponseMessage GetAllCodeNameModel(HttpRequestMessage request , int? posFrom , int?posTo , [ModelBinder(typeof(CommaDelimitedCollectionModelBinder))]IEnumerable<string> posGrp)
         {
             return CreateHttpResponse(request, () =>
@@ -834,6 +961,13 @@ namespace EmpMan.Web.Controllers
                     }
                     _dataService.SaveChanges();
 
+                    //dang ky job 
+                    this.registerAlertTrialStaffStartTrialDateNotify("Emps", data.ID.ToString(), data.No.ToString(), data, false);
+                    this.registerAlertTrialStaffEndTrialDateNotify("Emps", data.ID.ToString(), data.No.ToString(), data, false);
+                    this.registerAlertTrialStaffToDevContractDateNotify("Emps", data.ID.ToString(), data.No.ToString(), data, false);
+                    this.registerAlertDevJobLeavedDateNotify("Emps", data.ID.ToString(), data.No.ToString(), data, false);
+                    
+
                     response = request.CreateResponse(HttpStatusCode.Created, data);
                 }
                 return response;
@@ -901,6 +1035,12 @@ namespace EmpMan.Web.Controllers
                     //commit data
                     _dataService.SaveChanges();
 
+                    //dang ky job 
+                    this.registerAlertTrialStaffStartTrialDateNotify("Emps", dataFromDb.ID.ToString(), dataFromDb.No.ToString(), dataFromDb, false);
+                    this.registerAlertTrialStaffEndTrialDateNotify("Emps", dataFromDb.ID.ToString(), dataFromDb.No.ToString(), dataFromDb, false);
+                    this.registerAlertTrialStaffToDevContractDateNotify("Emps", dataFromDb.ID.ToString(), dataFromDb.No.ToString(), dataFromDb, false);
+                    this.registerAlertDevJobLeavedDateNotify("Emps", dataFromDb.ID.ToString(), dataFromDb.No.ToString(), dataFromDb, false);
+
                     //return value
                     var responseData = Mapper.Map<Emp, EmpViewModel>(dataFromDb);
                     response = request.CreateResponse(HttpStatusCode.Created, responseData);
@@ -926,6 +1066,9 @@ namespace EmpMan.Web.Controllers
 
                     var oldDataFromDb = _dataService.Delete(id);
                     _dataService.SaveChanges();
+
+                    //delete thong tin job da dang ky
+                    this.deleteAlertJob(null, "Emps", oldDataFromDb.ID.ToString(), oldDataFromDb.No.ToString());
 
                     var responseData = Mapper.Map<Emp, EmpViewModel>(oldDataFromDb);
 
@@ -1346,38 +1489,40 @@ namespace EmpMan.Web.Controllers
             bool chkGetDataToDate = false;
             string getDataToDateFrom = "GETDATE()";
             string getDataToDateTo = "GETDATE()";
-            
-            if (model.EmpFilterDataValue != null)
+
+            if (model != null )
             {
-                var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
-                if (empFilterViewModel.systemValue.ExpMonth.HasValue)
+                if (model.EmpFilterDataValue != null)
                 {
-                    month = empFilterViewModel.systemValue.ExpMonth.Value;
-                }
-                if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
-                {
-                    year = empFilterViewModel.systemValue.ProcessingYear.Value.ToLocalTime().Year;
-                }
-                //Truong hop co thoi diem thong ke , thay the cac GETDATE() thanh ngay mong muon thong ke 
-                if (empFilterViewModel != null)
-                {
-                    if (empFilterViewModel.chkGetDataToDate.HasValue)
+                    var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
+                    if (empFilterViewModel.systemValue.ExpMonth.HasValue)
                     {
-                        if (empFilterViewModel.chkGetDataToDate.Value)
+                        month = empFilterViewModel.systemValue.ExpMonth.Value;
+                    }
+                    if (empFilterViewModel.systemValue.ProcessingYear.HasValue)
+                    {
+                        year = empFilterViewModel.systemValue.ProcessingYear.Value.ToLocalTime().Year;
+                    }
+                    //Truong hop co thoi diem thong ke , thay the cac GETDATE() thanh ngay mong muon thong ke 
+                    if (empFilterViewModel != null)
+                    {
+                        if (empFilterViewModel.chkGetDataToDate.HasValue)
                         {
-                            //co setting tri 
-                            chkGetDataToDate = true;
-                            if (empFilterViewModel.getDataToDateTo.HasValue)
+                            if (empFilterViewModel.chkGetDataToDate.Value)
                             {
-                                getDataToDateTo = "'" + empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd") + "'";
-                                processingDateTo = empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd");
+                                //co setting tri 
+                                chkGetDataToDate = true;
+                                if (empFilterViewModel.getDataToDateTo.HasValue)
+                                {
+                                    getDataToDateTo = "'" + empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd") + "'";
+                                    processingDateTo = empFilterViewModel.getDataToDateTo.Value.ToLocalTime().ToString("yyyy/MM/dd");
+                                }
                             }
                         }
                     }
-                }
 
+                }
             }
-            
 
             string sql = @" SELECT @TOP_RECORD@ *
                                 --LTV dang lam viec cho toi hien tai hoac toi ngay setting (tinh ca onsite , khong tinh PD va cac nhan vien khac)
@@ -1479,6 +1624,375 @@ namespace EmpMan.Web.Controllers
             dataVm.BusinessAllowanceLevelMasterID = (int)MasterKbnEnum.BusinessAllowanceLevel;
             dataVm.RoomWithInternetAllowanceLevelMasterID = (int)MasterKbnEnum.RoomWithInternetAllowanceLevel;
 
+        }
+
+        /// <summary>
+        /// Dang ky alert sms job ve viec chuan bi cho nhan vien vao thu viec
+        /// </summary>
+        /// <param name="table">Ten bang</param>
+        /// <param name="tableKey">Khoa cua du lieu</param>
+        /// <param name="tableKeyId">Khoa </param>
+        /// <param name="itemData">data nhan vien thu viec</param>
+        private void registerAlertTrialStaffStartTrialDateNotify(string table, string tableKey, string tableKeyId, Emp itemData, bool isDeleteAction)
+        {
+            //goi api thuc thi get data
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["staff"] = itemData.ID.ToString();
+            query["includeManager"] = "1"; //lay ca thong tin cua manager
+            query["otherStaff"] = "";
+
+            string queryString = query.ToString();
+            var notifyDataList = HttpClientHelper<EmpViewModel>.GetApiUseHttpClientRetList("/api/emp/getalertlistofstaff?" + queryString);
+
+            foreach (var item in notifyDataList)
+            {
+                tableKeyId = item.ID.ToString(); //ma nhan vien nhan thong tin sms
+
+                if (isDeleteAction || !itemData.StartTrialDate.HasValue)
+                {
+                    //delete job
+                    this.deleteAlertJob(((int)JobTypeEnum.TrialStaffStartTrialDateNotify).ToString(), table, tableKey, tableKeyId);
+                }
+                else
+                {
+                    //truong hop co ngay ket thuc trial va chua co ky HD va ngay ket thuc thu viec phai lon hon ngay hien tai
+                    if (itemData.StartTrialDate.HasValue && (itemData.StartTrialDate.Value.Date >= DateTime.Now.Date))
+                    {
+                        JobSchedulerViewModel model = new JobSchedulerViewModel();
+                        //loop qua tung nguoi dang ky job
+                        //check xem da co ton tai hay chua ?
+
+                        var jobData = this._dataJobSchedulerService.GetByTableKey(((int)JobTypeEnum.TrialStaffStartTrialDateNotify).ToString(), table, tableKey, tableKeyId).ToList().FirstOrDefault();
+                        model = jobData.Adapt<JobScheduler, JobSchedulerViewModel>();
+
+                        if (jobData != null && !string.IsNullOrEmpty(jobData.TableNameRelation))
+                        {
+                            //chua ton tai thi tao moi 
+                            model.ScheduleRunJobDate = itemData.StartTrialDate;//ngay nghi viec nhan vien
+                            model.EventDate = itemData.StartTrialDate;
+                            model.ToNotiEmailList = item.WorkingEmail; //email cua nguoi se nhan tin nhan
+                            model.SMSToNumber = item.PhoneNumber1;
+                            model.LocationEvent = "";
+                        }
+                        else
+                        {
+                            model = new JobSchedulerViewModel();
+                            //chua ton tai thi tao moi 
+                            model.JobType = ((int)JobTypeEnum.TrialStaffStartTrialDateNotify).ToString();
+                            model.Name = "Thông báo tiếp nhận nhân viên mới";
+                            model.TableNameRelation = table;
+                            model.TableKey = tableKey;
+                            model.TableKeyID = tableKeyId;
+                            model.ScheduleRunJobDate = itemData.StartTrialDate;
+                            model.EventDate = itemData.StartTrialDate;
+                            model.EventUser = itemData.FullName;
+                            model.FromEmail = "";
+                            model.ToNotiEmailList = item.WorkingEmail;
+                            model.CcNotiEmailList = "";
+                            model.BccNotiEmailList = "";
+                            model.SMSFromNumber = "";
+                            model.SMSToNumber = item.PhoneNumber1;
+                            //model.SMSContent = "";
+                            //model.JobContent = "";.
+                            model.JobStatus = 0;
+                            //model.ActualRunJobDate="";
+                            model.TemplateID = (int)JobTypeEnum.TrialStaffStartTrialDateNotify;
+                            model.LocationEvent = "";
+                            model.Note = "Tạo tự động";
+
+                        }
+
+                        var callApi = HttpClientHelper<JobSchedulerViewModel>.PostApiUseHttpClient("/api/jobscheduler/findregister", model);
+
+                    }
+                    else
+                    {
+                        //delete neu nhu khong con setting ngay nghi viec
+                        this.deleteAlertJob(((int)JobTypeEnum.TrialStaffStartTrialDateNotify).ToString(), table, tableKey, tableKeyId);
+
+                    }//if
+
+                }//if delete
+
+            }//for
+        }
+
+
+        /// <summary>
+        /// Dang ky alert sms job ve thong bao het han thu viec
+        /// </summary>
+        /// <param name="table">Ten bang</param>
+        /// <param name="tableKey">Khoa cua du lieu</param>
+        /// <param name="tableKeyId">Khoa </param>
+        /// <param name="dataRecruitmentStaff">data phong van</param>
+        private void registerAlertTrialStaffEndTrialDateNotify(string table, string tableKey, string tableKeyId, Emp itemData, bool isDeleteAction)
+        {
+                        
+            //goi api thuc thi get data
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["staff"] = itemData.ID.ToString();
+            query["includeManager"] = "0";
+            query["otherStaff"] = "";
+
+            string queryString = query.ToString();
+            var notifyDataList = HttpClientHelper<EmpViewModel>.GetApiUseHttpClientRetList("/api/emp/getalertlistofstaff?" + queryString);
+                        
+            foreach (var item in notifyDataList)
+            {
+                tableKeyId = item.ID.ToString(); //ma nhan vien
+
+                if (isDeleteAction || !itemData.EndTrialDate.HasValue)
+                {
+                    //delete job
+                    this.deleteAlertJob(((int)JobTypeEnum.TrialStaffEndTrialDateNotify).ToString(),table, tableKey, tableKeyId);
+                }
+                else
+                {
+                    //truong hop co ngay ket thuc trial va chua co ky HD va ngay ket thuc thu viec phai lon hon ngay hien tai
+                    if (itemData.EndTrialDate.HasValue && (itemData.EndTrialDate.Value.Date >= DateTime.Now.Date) && (!itemData.ContractDate.HasValue) )
+                    {
+                        JobSchedulerViewModel model = new JobSchedulerViewModel();
+                        //loop qua tung nguoi dang ky job
+                        //check xem da co ton tai hay chua ?
+
+                        var jobData = this._dataJobSchedulerService.GetByTableKey(((int)JobTypeEnum.TrialStaffEndTrialDateNotify).ToString(),table, tableKey, tableKeyId).ToList().FirstOrDefault();
+                        model = jobData.Adapt<JobScheduler, JobSchedulerViewModel>();
+
+                        if (jobData != null && !string.IsNullOrEmpty(jobData.TableNameRelation))
+                        {
+                            //chua ton tai thi tao moi 
+                            model.ScheduleRunJobDate = itemData.EndTrialDate;
+                            model.EventDate = itemData.EndTrialDate;
+                            model.ToNotiEmailList = item.WorkingEmail;
+                            model.SMSToNumber = item.PhoneNumber1;
+                            model.LocationEvent = "";
+                        }
+                        else
+                        {
+                            model = new JobSchedulerViewModel();
+                            //chua ton tai thi tao moi 
+                            model.JobType = ((int)JobTypeEnum.TrialStaffEndTrialDateNotify).ToString();
+                            model.Name = "Thông báo hết hạn thử việc";
+                            model.TableNameRelation = table;
+                            model.TableKey = tableKey;
+                            model.TableKeyID = tableKeyId;
+                            model.ScheduleRunJobDate = itemData.EndTrialDate;
+                            model.EventDate = itemData.EndTrialDate;
+                            model.EventUser = itemData.FullName;
+                            model.FromEmail = "";
+                            model.ToNotiEmailList = item.WorkingEmail;
+                            model.CcNotiEmailList = "";
+                            model.BccNotiEmailList = "";
+                            model.SMSFromNumber = "";
+                            model.SMSToNumber = item.PhoneNumber1;
+                            //model.SMSContent = "";
+                            //model.JobContent = "";.
+                            model.JobStatus = 0;
+                            //model.ActualRunJobDate="";
+                            model.TemplateID = (int)JobTypeEnum.DevInterviewDateNotify;
+                            model.LocationEvent = "";
+                            model.Note = "Tạo tự động";
+
+                        }
+                        
+                        var callApi = HttpClientHelper<JobSchedulerViewModel>.PostApiUseHttpClient("/api/jobscheduler/findregister", model);
+
+                    }
+                    else
+                    {
+                        //delete
+                        this.deleteAlertJob(((int)JobTypeEnum.TrialStaffEndTrialDateNotify).ToString(),table, tableKey, tableKeyId);
+
+                    }//if
+
+                }//if delete
+
+            }//for
+        }
+
+        /// <summary>
+        /// Dang ky alert sms job ve thong bao nhan chinh thuc nhan vien
+        /// </summary>
+        /// <param name="table">Ten bang</param>
+        /// <param name="tableKey">Khoa cua du lieu</param>
+        /// <param name="tableKeyId">Khoa </param>
+        /// <param name="dataRecruitmentStaff">data phong van</param>
+        private void registerAlertTrialStaffToDevContractDateNotify(string table, string tableKey, string tableKeyId, Emp itemData, bool isDeleteAction)
+        {
+            
+            tableKeyId = itemData.ID.ToString(); //ma nhan vien
+
+            if (isDeleteAction || !itemData.ContractDate.HasValue)
+            {
+                //delete job
+                this.deleteAlertJob(((int)JobTypeEnum.TrialStaffToDevContractDateNotify).ToString(),table, tableKey, tableKeyId);
+            }
+            else
+            {
+                //truong hop co ngay ket thuc trial va chua co ky HD va ngay ket thuc thu viec phai lon hon ngay hien tai
+                if (itemData.ContractDate.HasValue && (itemData.ContractDate.Value.Date >= DateTime.Now.Date) )
+                {
+                    JobSchedulerViewModel model = new JobSchedulerViewModel();
+                    //loop qua tung nguoi dang ky job
+                    //check xem da co ton tai hay chua ?
+
+                    var jobData = this._dataJobSchedulerService.GetByTableKey(((int)JobTypeEnum.TrialStaffToDevContractDateNotify).ToString(),table, tableKey, tableKeyId).ToList().FirstOrDefault();
+                    model = jobData.Adapt<JobScheduler, JobSchedulerViewModel>();
+
+                    if (jobData != null && !string.IsNullOrEmpty(jobData.TableNameRelation))
+                    {
+                        //chua ton tai thi tao moi 
+                        model.ScheduleRunJobDate = itemData.ContractDate;
+                        model.EventDate = itemData.ContractDate;
+                        model.ToNotiEmailList = itemData.WorkingEmail;
+                        model.SMSToNumber = itemData.PhoneNumber1;
+                        model.LocationEvent = "";
+                    }
+                    else
+                    {
+                        model = new JobSchedulerViewModel();
+                        //chua ton tai thi tao moi 
+                        model.JobType = ((int)JobTypeEnum.TrialStaffToDevContractDateNotify).ToString();
+                        model.Name = "Thông báo nhận chính thức";
+                        model.TableNameRelation = table;
+                        model.TableKey = tableKey;
+                        model.TableKeyID = tableKeyId;
+                        model.ScheduleRunJobDate = itemData.ContractDate;
+                        model.EventDate = itemData.ContractDate;
+                        model.EventUser = itemData.FullName;
+                        model.FromEmail = "";
+                        model.ToNotiEmailList = itemData.WorkingEmail;
+                        model.CcNotiEmailList = "";
+                        model.BccNotiEmailList = "";
+                        model.SMSFromNumber = "";
+                        model.SMSToNumber = itemData.PhoneNumber1;
+                        //model.SMSContent = "";
+                        //model.JobContent = "";.
+                        model.JobStatus = 0;
+                        //model.ActualRunJobDate="";
+                        model.TemplateID = (int)JobTypeEnum.TrialStaffToDevContractDateNotify;
+                        model.LocationEvent = "";
+                        model.Note = "Tạo tự động";
+
+                    }
+
+                    var callApi = HttpClientHelper<JobSchedulerViewModel>.PostApiUseHttpClient("/api/jobscheduler/findregister", model);
+                }
+                else
+                {
+                    //delete
+                    this.deleteAlertJob(((int)JobTypeEnum.TrialStaffToDevContractDateNotify).ToString(),table, tableKey, tableKeyId);
+                }//if
+            }//if delete
+        }
+
+        /// <summary>
+        /// Dang ky alert sms job ve thong bao cho cap quan ly nhan vien sap nghi viec
+        /// </summary>
+        /// <param name="table">Ten bang</param>
+        /// <param name="tableKey">Khoa cua du lieu</param>
+        /// <param name="tableKeyId">Khoa </param>
+        /// <param name="dataRecruitmentStaff">data phong van</param>
+        private void registerAlertDevJobLeavedDateNotify(string table, string tableKey, string tableKeyId, Emp itemData, bool isDeleteAction)
+        {
+            //goi api thuc thi get data
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["staff"] = itemData.ID.ToString();
+            query["includeManager"] = "1"; //lay ca thong tin cua manager
+            query["otherStaff"] = "";
+
+            string queryString = query.ToString();
+            var notifyDataList = HttpClientHelper<EmpViewModel>.GetApiUseHttpClientRetList("/api/emp/getalertlistofstaff?" + queryString);
+
+            foreach (var item in notifyDataList)
+            {
+                tableKeyId = item.ID.ToString(); //ma nhan vien
+
+                if (isDeleteAction || !itemData.JobLeaveDate.HasValue)
+                {
+                    //delete job
+                    this.deleteAlertJob(((int)JobTypeEnum.DevJobLeavedDateNotify).ToString(),table, tableKey, tableKeyId);
+                }
+                else
+                {
+                    //truong hop co ngay ket thuc trial va chua co ky HD va ngay ket thuc thu viec phai lon hon ngay hien tai
+                    if (itemData.JobLeaveDate.HasValue && (itemData.JobLeaveDate.Value.Date >= DateTime.Now.Date) )
+                    {
+                        JobSchedulerViewModel model = new JobSchedulerViewModel();
+                        //loop qua tung nguoi dang ky job
+                        //check xem da co ton tai hay chua ?
+
+                        var jobData = this._dataJobSchedulerService.GetByTableKey(((int)JobTypeEnum.DevJobLeavedDateNotify).ToString(),table, tableKey, tableKeyId).ToList().FirstOrDefault();
+                        model = jobData.Adapt<JobScheduler, JobSchedulerViewModel>();
+
+                        if (jobData != null && !string.IsNullOrEmpty(jobData.TableNameRelation))
+                        {
+                            //chua ton tai thi tao moi 
+                            model.ScheduleRunJobDate = itemData.JobLeaveDate;//ngay nghi viec nhan vien
+                            model.EventDate = itemData.JobLeaveDate;
+                            model.ToNotiEmailList = item.WorkingEmail; //email cua nguoi se nhan tin nhan
+                            model.SMSToNumber = item.PhoneNumber1;
+                            model.LocationEvent = "";
+                        }
+                        else
+                        {
+                            model = new JobSchedulerViewModel();
+                            //chua ton tai thi tao moi 
+                            model.JobType = ((int)JobTypeEnum.DevJobLeavedDateNotify).ToString();
+                            model.Name = "Thông báo sắp tới ngày nghỉ việc của NV";
+                            model.TableNameRelation = table;
+                            model.TableKey = tableKey;
+                            model.TableKeyID = tableKeyId;
+                            model.ScheduleRunJobDate = itemData.JobLeaveDate;
+                            model.EventDate = itemData.JobLeaveDate;
+                            model.EventUser = itemData.FullName;
+                            model.FromEmail = "";
+                            model.ToNotiEmailList = item.WorkingEmail;
+                            model.CcNotiEmailList = "";
+                            model.BccNotiEmailList = "";
+                            model.SMSFromNumber = "";
+                            model.SMSToNumber = item.PhoneNumber1;
+                            //model.SMSContent = "";
+                            //model.JobContent = "";.
+                            model.JobStatus = 0;
+                            //model.ActualRunJobDate="";
+                            model.TemplateID = (int)JobTypeEnum.DevJobLeavedDateNotify;
+                            model.LocationEvent = "";
+                            model.Note = "Tạo tự động";
+
+                        }
+
+                        var callApi = HttpClientHelper<JobSchedulerViewModel>.PostApiUseHttpClient("/api/jobscheduler/findregister", model);
+
+                    }
+                    else
+                    {
+                        //delete neu nhu khong con setting ngay nghi viec
+                        this.deleteAlertJob(((int)JobTypeEnum.DevJobLeavedDateNotify).ToString(),table, tableKey, tableKeyId);
+
+                    }//if
+
+                }//if delete
+
+            }//for
+        }
+
+
+        /// <summary>
+        /// Xoa thong tin job
+        /// </summary>
+        /// <param name="table">ten table</param>
+        /// <param name="tableKey">ID cua nguoi duoc phong van</param>
+        /// <param name="tableKeyId">ID cua nguoi dang phong van</param>
+        private void deleteAlertJob(string jobType , string table, string tableKey, string tableKeyId)
+        {
+            //get thong tin job
+            var jobData = this._dataJobSchedulerService.GetByTableKey(jobType,table, tableKey, tableKeyId).ToList().FirstOrDefault();
+            if (jobData != null)
+            {
+                this._dataJobSchedulerService.Delete(jobData.ID);
+                this._dataJobSchedulerService.SaveChanges();
+            }
         }
 
     }

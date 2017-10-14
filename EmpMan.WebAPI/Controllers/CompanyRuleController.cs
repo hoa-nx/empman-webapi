@@ -7,11 +7,11 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Master;
+using EmpMan.Common.ViewModels.Models.Master;
 using EmpMan.Common;
 using System.Web.Script.Serialization;
 
@@ -31,7 +31,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("getall")]
         [HttpGet]
-        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.COMPANY_RULE)]
+        //[Permission(Action = FunctionActions.READ, Function = FunctionConstants.COMPANY_RULE)]
         public HttpResponseMessage GetAll(HttpRequestMessage request)
         {
             return CreateHttpResponse(request, () =>
@@ -107,13 +107,13 @@ namespace EmpMan.Web.Controllers
                     CompanyRule newData = new CompanyRule();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
+
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
                     //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
                     
 
                     newData.UpdateCompanyRule(dataVm);

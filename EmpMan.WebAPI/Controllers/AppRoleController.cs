@@ -13,8 +13,8 @@ using EmpMan.Service;
 using EmpMan.Web.App_Start;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
-using EmpMan.Web.Models.DataContracts;
+using EmpMan.Common.ViewModels.Models.DataContracts;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Controllers
 {

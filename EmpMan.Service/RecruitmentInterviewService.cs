@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System;
 using EmpMan.Common.Enums;
 using EmpMan.Data;
+using EmpMan.Common.ViewModels.Models.Emp;
 
 namespace EmpMan.Service
 {
@@ -98,6 +99,13 @@ namespace EmpMan.Service
         /// <returns></returns>
         IEnumerable<RecruitmentInterview> GetMultiByCondition(Expression<Func<RecruitmentInterview, bool>> expression, string[] includes = null);
 
+        /// <summary>
+        /// Lay danh sach cac nguoi co dang ky phong van ung vien
+        /// </summary>
+        /// <param name="recruitmentID">Ma dot ung tuyen</param>
+        /// <param name="recruitmentStaffID">Ma ung vien</param>
+        /// <returns></returns>
+        IEnumerable<RecruitmentInterviewViewModel> GetInterviewStaffByRecruitmentStaffForJob(string recruitmentID, string recruitmentStaffID);
         /// <summary>
         /// Lưu các thay đổi vào DB
         /// </summary>
@@ -297,6 +305,22 @@ namespace EmpMan.Service
         public EmpManDbContext GetDbContext()
         {
             return this._unitOfWork.DbContext;
+        }
+
+        public IEnumerable<RecruitmentInterviewViewModel> GetInterviewStaffByRecruitmentStaffForJob(string recruitmentID, string recruitmentStaffID)
+        {
+            string sql = @" SELECT 
+									REI.*
+                                ,   EMP.WorkingEmail 
+                                ,   EMP.PhoneNumber1 
+                                ,   EMP.FullName Label 
+                                FROM [dbo].[RecruitmentInterviews] REI 
+                                LEFT OUTER JOIN EMPS EMP ON REI.RegInterviewEmpID = EMP.ID 
+                                WHERE UPPER(REI.RecruitmentID)='" + recruitmentID.ToUpper() + "' AND UPPER(REI.RecruitmentStaffID) ='" + recruitmentStaffID.ToUpper() + "'";
+
+            var data = this.GetDbContext().Database.SqlQuery<RecruitmentInterviewViewModel>(sql).ToList();
+
+            return data;
         }
     }
 }

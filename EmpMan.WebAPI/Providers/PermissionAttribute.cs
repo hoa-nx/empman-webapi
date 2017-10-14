@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using EmpMan.Common.Enums;
-using EmpMan.Web.Models;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Providers
 {
@@ -14,6 +14,11 @@ namespace EmpMan.Web.Providers
     {
         public string Function;
         public string Action;
+
+        public PermissionAttribute(params string[] functions)
+        {
+            Function = string.Join(",", functions);
+        }
 
         public override void OnAuthorization(HttpActionContext actionContext)
         {
@@ -27,27 +32,28 @@ namespace EmpMan.Web.Providers
             else
             {
                 var roles = JsonConvert.DeserializeObject<List<string>>(principal.FindFirst("roles").Value);
+
                 if (roles.Count > 0)
                 {
                     if (!roles.Contains(RoleEnum.Admin.ToString()))
                     {
                         var permissions = JsonConvert.DeserializeObject<List<PermissionViewModel>>(principal.FindFirst("permissions").Value);
-                        if (!permissions.Exists(x => x.FunctionId == Function && x.CanCreate) && Action == ActionEnum.Create.ToString())
+                        if (!permissions.Exists(x => Function.Contains(x.FunctionId) && x.CanCreate) && Action == ActionEnum.Create.ToString())
                         {
                             actionContext.Response = new HttpResponseMessage(HttpStatusCode.Forbidden);
 
                         }
-                        else if (!permissions.Exists(x => x.FunctionId == Function && x.CanRead) && Action == ActionEnum.Read.ToString())
+                        else if (!permissions.Exists(x => Function.Contains(x.FunctionId) && x.CanRead) && Action == ActionEnum.Read.ToString())
                         {
                             actionContext.Response = new HttpResponseMessage(HttpStatusCode.Forbidden);
 
                         }
-                        else if (!permissions.Exists(x => x.FunctionId == Function && x.CanDelete) && Action == ActionEnum.Delete.ToString())
+                        else if (!permissions.Exists(x => Function.Contains(x.FunctionId) && x.CanDelete) && Action == ActionEnum.Delete.ToString())
                         {
                             actionContext.Response = new HttpResponseMessage(HttpStatusCode.Forbidden);
 
                         }
-                        else if (!permissions.Exists(x => x.FunctionId == Function && x.CanUpdate) && Action == ActionEnum.Update.ToString())
+                        else if (!permissions.Exists(x => Function.Contains(x.FunctionId) && x.CanUpdate) && Action == ActionEnum.Update.ToString())
                         {
                             actionContext.Response = new HttpResponseMessage(HttpStatusCode.Forbidden);
                         }

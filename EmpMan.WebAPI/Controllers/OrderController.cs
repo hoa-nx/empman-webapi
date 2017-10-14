@@ -15,8 +15,9 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
+using EmpMan.Common.ViewModels.Models.Product;
 
 namespace EmpMan.Web.Controllers
 {

@@ -246,4 +246,69 @@ namespace EmpMan.Common.Enums
         /// </summary>
         WorkingConditionTalkDate = 52
     }
+
+    public enum RecruitmentStaffTrainerImportColumnEnum
+    {
+        /// <summary>
+        /// Số thứ tự
+        /// </summary>
+        No = 1,
+
+        /// <summary>
+        /// Họ và tên
+        /// </summary>
+        FullName = 2,
+
+        /// <summary>
+        /// Ngày sinh
+        /// </summary>
+        BirthDay = 4,
+
+        /// <summary>
+        /// Giới tính
+        /// </summary>
+        Gender = 5,
+
+        /// <summary>
+        /// Ngon ngu lap trinh
+        /// </summary>
+        ProgrammingLanguage = 6,
+
+        /// <summary>
+        /// Tên Trường 1
+        /// </summary>
+        CollectName = 7,
+
+        /// <summary>
+        /// Trình Độ 1
+        /// </summary>
+        EducationLevel = 8,
+
+        /// <summary>
+        /// Hệ đào tạo 1
+        /// </summary>
+        EducationType = 9,
+
+        /// <summary>
+        /// Xếp loại 1
+        /// </summary>
+        Grade = 10,
+
+        /// <summary>
+        /// Nhận Xét Project 1
+        /// </summary>
+        Comment1 = 11,
+
+        /// <summary>
+        /// Điểm Project
+        /// </summary>
+        GradeTestRound1 = 12,
+
+        /// <summary>
+        /// Nguyện vọng
+        /// </summary>
+        Comment2 = 18
+        
+    }
+
 }

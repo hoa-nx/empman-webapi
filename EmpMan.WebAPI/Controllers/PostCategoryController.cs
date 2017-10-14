@@ -7,7 +7,7 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+using EmpMan.Common.ViewModels.Models.Post;
 
 namespace EmpMan.Web.Controllers
 {

@@ -7,12 +7,12 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Project;
-using EmpMan.Web.Models.Master;
+using EmpMan.Common.ViewModels.Models.Project;
+using EmpMan.Common.ViewModels.Models.Master;
 using System.Threading.Tasks;
 using EmpMan.Common;
 using System.Web;

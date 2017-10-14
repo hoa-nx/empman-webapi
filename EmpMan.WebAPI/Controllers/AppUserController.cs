@@ -12,10 +12,11 @@ using EmpMan.Service;
 using EmpMan.Web.App_Start;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using EmpMan.Common;
 using EmpMan.Common.Enums;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Controllers
 {
@@ -75,6 +76,7 @@ namespace EmpMan.Web.Controllers
                 var roles = await AppUserManager.GetRolesAsync(user.Id);
                 var applicationUserViewModel = Mapper.Map<AppUser, AppUserViewModel>(user);
                 applicationUserViewModel.Roles = roles;
+                applicationUserViewModel.Gender = applicationUserViewModel.Gender == "True" ? "1": "0";
                 return request.CreateResponse(HttpStatusCode.OK, applicationUserViewModel);
             }
         }

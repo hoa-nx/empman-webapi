@@ -111,11 +111,28 @@
     <Compile Include="Migrations\201709220827487_Add columns EmpDetailWork tables.Designer.cs">
       <DependentUpon>201709220827487_Add columns EmpDetailWork tables.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201710050743185_Add column to jobscheduler table.cs" />
+    <Compile Include="Migrations\201710050743185_Add column to jobscheduler table.Designer.cs">
+      <DependentUpon>201710050743185_Add column to jobscheduler table.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201710060634159_Add some column to jobscheduler table.cs" />
+    <Compile Include="Migrations\201710060634159_Add some column to jobscheduler table.Designer.cs">
+      <DependentUpon>201710060634159_Add some column to jobscheduler table.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201710060904517_Add location event column to jobscheduler table.cs" />
+    <Compile Include="Migrations\201710060904517_Add location event column to jobscheduler table.Designer.cs">
+      <DependentUpon>201710060904517_Add location event column to jobscheduler table.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201710091115398_Add EventUser column to jobscheduler table.cs" />
+    <Compile Include="Migrations\201710091115398_Add EventUser column to jobscheduler table.Designer.cs">
+      <DependentUpon>201710091115398_Add EventUser column to jobscheduler table.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\AnnouncementRepository.cs" />
     <Compile Include="Repositories\AnnouncementUserRepository.cs" />
     <Compile Include="Repositories\ColorRepository.cs" />
+    <Compile Include="Repositories\JobSchedulerRepository.cs" />
     <Compile Include="Repositories\OrderReceivedRepository.cs" />
     <Compile Include="Repositories\EstimateRepository.cs" />
     <Compile Include="Repositories\RecruitmentInterviewRepository.cs" />
@@ -231,6 +248,18 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201709220827487_Add columns EmpDetailWork tables.resx">
       <DependentUpon>201709220827487_Add columns EmpDetailWork tables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201710050743185_Add column to jobscheduler table.resx">
+      <DependentUpon>201710050743185_Add column to jobscheduler table.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201710060634159_Add some column to jobscheduler table.resx">
+      <DependentUpon>201710060634159_Add some column to jobscheduler table.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201710060904517_Add location event column to jobscheduler table.resx">
+      <DependentUpon>201710060904517_Add location event column to jobscheduler table.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201710091115398_Add EventUser column to jobscheduler table.resx">
+      <DependentUpon>201710091115398_Add EventUser column to jobscheduler table.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />

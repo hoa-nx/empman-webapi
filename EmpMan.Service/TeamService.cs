@@ -165,6 +165,7 @@ namespace EmpMan.Service
         public IEnumerable<Team> GetAll(int? filterDeptID, string keyword)
         {
             var query = _teamRepository.GetAll(new string[] {"Dept","TopLeader"});
+            //var query = _teamRepository.GetAll();
             if (!string.IsNullOrEmpty(keyword))
                 query = query.Where(x => x.Name.ToLower().Contains(keyword.ToLower()));
 

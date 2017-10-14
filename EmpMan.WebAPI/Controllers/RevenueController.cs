@@ -7,11 +7,11 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Revenue;
+using EmpMan.Common.ViewModels.Models.Revenue;
 using System.Globalization;
 using System.Collections;
 using EmpMan.Common.ViewModels;
@@ -26,6 +26,7 @@ using System.Web;
 using System.Configuration;
 using EmpMan.Common.Enums;
 using Mapster;
+using EmpMan.Common.ViewModels.Models.Common;
 
 namespace EmpMan.Web.Controllers
 {

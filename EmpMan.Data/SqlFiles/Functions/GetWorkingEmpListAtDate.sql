@@ -72,7 +72,7 @@ INNER JOIN (
 	WHERE 
 		WOK.WorkEmpTypeMasterID = 31 
 	AND WOK.WorkEmpTypeMasterDetailID =1  --loai nhan su tu dept khac chuyen sang
-	AND WOK.DeptID=1 
+	AND WOK.DeptID=@DeptID
 ) WOK
 ON (
 	(WOK.EndDate IS NOT NULL AND dates.ymd between WOK.StartDate AND WOK.EndDate) 
@@ -104,7 +104,7 @@ INNER JOIN (
 	WHERE 
 		WOK.WorkEmpTypeMasterID = 31 
 	AND WOK.WorkEmpTypeMasterDetailID =4  --loai nhan su nghi tam thoi ( nghi thai san...)
-	AND WOK.DeptID = 1 
+	AND WOK.DeptID = @DeptID 
 ) WOK
 ON (
 	(WOK.EndDate IS NOT NULL AND CONVERT(DATE, DATEADD(DAY, 5, dates.ymd)) between WOK.StartDate AND WOK.EndDate) 
@@ -135,7 +135,7 @@ INNER JOIN (
 	WHERE 
 		WOK.WorkEmpTypeMasterID = 31 
 	AND WOK.WorkEmpTypeMasterDetailID =2  --loai nhan su sang dept khac ho tro
-	AND WOK.DeptID <> 1 
+	AND WOK.DeptID <> @DeptID
 ) WOK
 ON (
 	(WOK.EndDate IS NOT NULL AND CONVERT(DATE, DATEADD(DAY, 20, dates.ymd)) between WOK.StartDate AND WOK.EndDate) 

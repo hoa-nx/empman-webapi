@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
-using EmpMan.Web.Models;
+
 using System.DirectoryServices.AccountManagement;
 using System;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Providers
 {
@@ -33,15 +34,25 @@ namespace EmpMan.Web.Providers
             AppUser user;
             try
             {
-                user = await userManager.FindAsync(context.UserName, context.Password);
-
                 //PrincipalContext AD = new PrincipalContext(ContextType.Domain, "fujinet.vn");
                 //UserPrincipal u = new UserPrincipal(AD);
                 //u.SamAccountName = "hoa-nx";
                 //PrincipalSearcher search = new PrincipalSearcher(u);
                 //UserPrincipal result = (UserPrincipal)search.FindOne();
                 //search.Dispose();
-                //CheckCredentials("hoa-nx", "", "FUJINET");
+                bool useDomainAccount = CheckCredentials(context.UserName, context.Password, "FUJINET");
+
+                if (useDomainAccount)
+                {
+                    //get thong tin cua user
+
+                    user = await userManager.FindAsync(context.UserName, "Abc12345");
+
+                }else
+                {
+                    //login su dung account he thong
+                    user = await userManager.FindAsync(context.UserName, context.Password);
+                }
             }
             catch
             {

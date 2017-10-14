@@ -15,11 +15,20 @@ using EmpMan.Common.ViewModels;
 using System.Net;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using EmpMan.Data.Infrastructure;
+using EmpMan.Data.Repositories;
+using EmpMan.Model.Models;
 
 namespace EmpMan.Web.Infrastructure.SmsHelper
 {
     public static class SmsHelper
     {
+        private struct SpeedSmsCredential
+        {
+            public string token;
+            public string pw;
+        }
+
         static async Task SendSms(string fromNumber , string toNumber , string msg)
         {
             var systemConfig = ServiceFactory.Get<ISystemConfigService>().GetByAccount(HttpContext.Current.User.Identity.Name);
@@ -138,22 +147,65 @@ namespace EmpMan.Web.Infrastructure.SmsHelper
             StreamReader reader = new StreamReader(data);
             return reader.ReadToEnd();
         }
+        private static SpeedSmsCredential getSpeedSmsToken()
+        {
+            SpeedSmsCredential returnValue;
+
+            SystemConfig systemConfig=null ;
+
+            if (HttpContext.Current != null)
+            {
+                systemConfig = ServiceFactory.Get<ISystemConfigService>().GetByAccount(HttpContext.Current.User.Identity.Name);
+            }
+            else
+            {
+                IDbFactory dbFactory;
+                ISystemConfigRepository objRepository;
+                IUnitOfWork unitOfWork;
+
+                dbFactory = new DbFactory();
+                objRepository = new SystemConfigRepository(dbFactory);
+                unitOfWork = new UnitOfWork(dbFactory);
+                //TODO : Thay the user name --- dang lay tri co dinh la admin 
+                systemConfig = objRepository.GetAll().Where(x => (x.Code.ToLower() == CommonConstants.AdminUser.ToLower())).FirstOrDefault();
+
+            }
+
+            var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(systemConfig.EmpFilterDataValue);
+
+            //ma hoa du lieu
+            string sid = StringCipher.Decrypt(empFilterViewModel.systemValue.SidT, CommonConstants.SecKeyString);
+            empFilterViewModel.systemValue.SidT = sid;
+            string token = StringCipher.Decrypt(empFilterViewModel.systemValue.TokT, CommonConstants.SecKeyString);
+            empFilterViewModel.systemValue.TokT = token;
+
+            // Your Account SID 
+            var accountSid = sid;
+            // Your Auth Token 
+            var authToken = token;
+            returnValue.token = token;
+            returnValue.pw = sid;
+
+            return returnValue;
+        }
 
         public static String sendSpeedSMS(String[] phones, String content, int type, String sender)
         {
+            SpeedSmsCredential auth = getSpeedSmsToken();
             String url = rootURL + "/sms/send";
             if (phones.Length <= 0)
                 return "";
             if (content.Equals(""))
                 return "";
-            if (type < TYPE_QC || type > TYPE_BRANDNAME)
+            if (type < TYPE_QC || type > TYPE_GATEWAY)
                 return "";
             if (type == TYPE_BRANDNAME && sender.Equals(""))
                 return "";
             if (!sender.Equals("") && sender.Length > 11)
                 return "";
 
-            NetworkCredential myCreds = new NetworkCredential(accessToken, "***");
+            NetworkCredential myCreds = new NetworkCredential(auth.token, auth.pw);
+
             WebClient client = new WebClient();
             client.Credentials = myCreds;
             client.Headers[HttpRequestHeader.ContentType] = "application/json";
@@ -168,7 +220,7 @@ namespace EmpMan.Web.Infrastructure.SmsHelper
                     builder += ",";
                 }
             }
-            builder += "], \"content\": \"" + content + "\", \"type\":" + type + ", \"sender\": \"" + sender + "\"}";
+            builder += "], \"content\": \"" + StringHelper.ToVietnameseUnsign(content) + "\", \"type\":" + type + ", \"sender\": \"" + sender + "\"}";
 
             String json = builder.ToString();
             return client.UploadString(url, json);

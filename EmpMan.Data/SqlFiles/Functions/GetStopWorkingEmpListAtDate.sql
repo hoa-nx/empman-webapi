@@ -45,7 +45,7 @@ INNER JOIN (
 	WHERE 
 		WOK.WorkEmpTypeMasterID = 31 
 	AND WOK.WorkEmpTypeMasterDetailID =4  --loai nhan su nghi tam thoi ( nghi thai san...)
-	AND WOK.DeptID = 1 
+	AND WOK.DeptID = @DeptID
 ) WOK
 ON (
 	(WOK.EndDate IS NOT NULL AND CONVERT(DATE, DATEADD(DAY, 5, dates.ymd)) between WOK.StartDate AND WOK.EndDate) 

@@ -301,7 +301,10 @@ namespace EmpMan.Data
             //builder.Entity<Revenue>().Property(p => p.RowVersion).IsConcurrencyToken();
 
             //setting decimal config
-            DecimalPrecisionScaleConfig(builder);
+            this.DecimalPrecisionScaleConfig(builder);
+
+            //setting ignore columns
+            this.NotMapColumnsConfig(builder);
 
             //remove multiple cascade 
             builder.Conventions.Remove<ManyToManyCascadeDeleteConvention>();
@@ -384,6 +387,15 @@ namespace EmpMan.Data
             builder.Entity<OrderReceived>().Property(x => x.OrderCombineTestMM).HasPrecision(24, 10);
             builder.Entity<OrderReceived>().Property(x => x.OrderSystemTestMM).HasPrecision(24, 10);
             builder.Entity<OrderReceived>().Property(x => x.OrderUserTestMM).HasPrecision(24, 10);
+
+        }
+
+        private void NotMapColumnsConfig(DbModelBuilder builder)
+        {
+            builder.Entity<RecruitmentInterview>().Ignore(x => (x.Value));
+            builder.Entity<RecruitmentInterview>().Ignore(x => (x.Label));
+            builder.Entity<RecruitmentInterview>().Ignore(x => (x.WorkingEmail));
+            builder.Entity<RecruitmentInterview>().Ignore(x => (x.PhoneNumber1));
 
         }
     }

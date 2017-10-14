@@ -8,7 +8,7 @@ using System.Web.Http;
 using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
-using EmpMan.Web.Models.Common;
+using EmpMan.Common.ViewModels.Models.Common;
 using EmpMan.Web.SignalR;
 
 namespace EmpMan.Web.Controllers

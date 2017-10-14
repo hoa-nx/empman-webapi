@@ -7,12 +7,10 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Master;
-using EmpMan.Web.Models.Schedule;
 using EmpMan.Data;
 using EmpMan.Common;
 using EmpMan.Common.ViewModels;
@@ -21,6 +19,7 @@ using Mapster;
 using System.Text;
 using System.Configuration;
 using EmpMan.Web.Infrastructure.SmsHelper;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Controllers
 {
@@ -98,7 +97,8 @@ namespace EmpMan.Web.Controllers
             });
         }
 
-        [Route("detailsystemconfig/{id}")]
+        //[Route("detailsystemconfig/{id}")]
+        [Route("detailsystemconfig")]
         [HttpGet]
         [Permission(Action = FunctionActions.READ, Function = FunctionConstants.SYSTEM_CONFIG)]
         public HttpResponseMessage GetByAccountAndId(HttpRequestMessage request, string id)
@@ -240,8 +240,9 @@ namespace EmpMan.Web.Controllers
                 {
                     //test sms 
                     //SmsHelper.SendeSms("", "0967808590", "test");
-                    //String[] phones = new String[] { "0000" };
-                    //String rmsg = SmsHelper.sendSpeedSMS(phones, "***", 6, "");
+                    String[] phones = new String[] { "0907410052" };
+                    //0971462612
+                    //String rmsg = SmsHelper.sendSpeedSMS(phones, "Lich PV thu viec.\\nNgay 25/09:\\n1.Vo Tien Dat ( 17:00 P.106B).\\nNgay 26/09:\\n1.Nguyen Trong Tien(09:30 P.104).\\n2.Phan Thi Tuong Vy(14:00 P.702)", 4, "");
 
                     //tao moi neu chua ton tai 
                     CreateSystemConfigByAccount(_dataService.GetDbContext());

@@ -10,13 +10,13 @@ using System.Web.Http;
 using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
-using EmpMan.Web.Models;
 using System.Linq;
 using System.Linq.Expressions;
 using EmpMan.Common;
 using System;
 using System.Data;
 using System.Reflection;
+using EmpMan.Common.ViewModels.Models;
 
 namespace EmpMan.Web.Infrastructure.Extensions
 {

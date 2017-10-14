@@ -9,11 +9,12 @@ using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Model.Models;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Common;
 using EmpMan.Web.Providers;
 using System.Configuration;
 using System.Text;
+using EmpMan.Common.ViewModels.Models.Common;
 
 namespace EmpMan.Web.Controllers
 {

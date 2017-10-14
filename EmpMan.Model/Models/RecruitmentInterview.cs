@@ -142,5 +142,28 @@ namespace EmpMan.Model.Models
 
         [ForeignKey("FileID")]
         public virtual FileStorage File{ set; get; }
+
+        //not mapping items 
+
+        /// <summary>
+        /// Tên người phỏng vấn ( cho phù hợp với model của client)
+        /// </summary>
+        public string Label { set; get; }
+
+        /// <summary>
+        /// ID người phỏng vấn ( cho phù hợp với model của client)
+        /// </summary>
+        public int? Value { set; get; }
+
+        /// <summary>
+        /// email người phỏng vấn
+        /// </summary>
+        public string WorkingEmail { set; get; }
+
+        /// <summary>
+        /// phone người phỏng vấn
+        /// </summary>
+        public string PhoneNumber1 { set; get; }
+
     }
 }

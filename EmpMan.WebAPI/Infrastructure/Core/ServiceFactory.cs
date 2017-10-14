@@ -19,5 +19,6 @@ namespace EmpMan.Web.Infrastructure.Core
             }
             return DependencyResolver.Current.GetService<THelper>();
         }
+        
     }
 }

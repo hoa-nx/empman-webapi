@@ -7,16 +7,17 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Master;
+using EmpMan.Common.ViewModels.Models.Master;
 using System.Web.Script.Serialization;
-using EmpMan.Web.Models.Project;
+using EmpMan.Common.ViewModels.Models.Project;
 using EmpMan.Common.ViewModels;
 using EmpMan.Common;
 using Mapster;
+using EmpMan.Common.ViewModels.Models.Common;
 
 namespace EmpMan.Web.Controllers
 {
@@ -25,11 +26,13 @@ namespace EmpMan.Web.Controllers
     public class OrderReceivedController : ApiControllerBase
     {
         private IOrderReceivedService _dataService;
+        private IFileStorageService _dataFileService;
 
-        public OrderReceivedController(IErrorService errorService, IOrderReceivedService dataService) :
+        public OrderReceivedController(IErrorService errorService, IOrderReceivedService dataService, IFileStorageService dataFileService) :
             base(errorService)
         {
             this._dataService = dataService;
+            this._dataFileService = dataFileService;
         }
 
         [Route("getall")]
@@ -44,6 +47,9 @@ namespace EmpMan.Web.Controllers
                 //var listDataVm = Mapper.Map<List<OrderReceivedViewModel>>(listData);
                 var listDataVm = listData.Adapt<List<OrderReceivedViewModel>>();
 
+                //get attach file 
+                listDataVm = this.AddAttachtment(listDataVm);
+
                 HttpResponseMessage response = request.CreateResponse(HttpStatusCode.OK, listDataVm);
 
                 return response;
@@ -57,18 +63,23 @@ namespace EmpMan.Web.Controllers
             return CreateHttpResponse(request, () =>
             {
                 int totalRow = 0;
-                var model = _dataService.GetAll(keyword);
+                //var model = _dataService.GetAll(keyword);
+
+                var model = this.GetAllOrderUseSql(keyword);
 
                 totalRow = model.Count();
 
                 var query = model.OrderByDescending(x => x.CreatedDate).Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
                 //var responseData = Mapper.Map<List<OrderReceived>, List<OrderReceivedViewModel>>(query);
-                var responseData = query.Adapt<List<OrderReceived>, List<OrderReceivedViewModel>>();
+                //var responseData = query.Adapt<List<OrderReceived>, List<OrderReceivedViewModel>>();
+
+                //get attach file 
+                query = this.AddAttachtment(query);
 
                 var paginationSet = new PaginationSet<OrderReceivedViewModel>()
                 {
-                    Items = responseData,
+                    Items = query,
                     PageIndex = page,
                     TotalRows = totalRow,
                     PageSize = pageSize
@@ -103,6 +114,9 @@ namespace EmpMan.Web.Controllers
 
                     //var responseData = Mapper.Map<List<OrderReceived>, List<OrderReceivedViewModel>>(query);
                     var responseData = query.Adapt<List<OrderReceived>, List<OrderReceivedViewModel>>();
+
+                    //get attach file 
+                    responseData = this.AddAttachtment(responseData);
 
                     var paginationSet = new PaginationSet<OrderReceivedViewModel>()
                     {
@@ -168,13 +182,13 @@ namespace EmpMan.Web.Controllers
                     OrderReceived newData = new OrderReceived();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
+
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
                     //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
 
                     //chuyen doi List<string> thanh string 
                     //OS 
@@ -367,6 +381,90 @@ namespace EmpMan.Web.Controllers
 
                 return response;
             });
+        }
+
+        private IEnumerable<OrderReceivedViewModel> GetAllOrderUseSql(string search)
+        {
+            
+            string sql = @"SELECT [ORD].[ID]
+                          ,[ORD].[No]
+                          ,[ORD].[Name]
+                          ,[ORD].[ShortName]
+                          ,[ORD].[NameUseInReport]
+                          ,[ORD].[EstimateID]
+                          ,[ORD].[TotalOrderMM]
+                          ,[ORD].[OrderDate]
+                          ,[ORD].[SchedulePojectStartDate]
+                          ,[ORD].[SchedulePojectEndDate]
+                          ,[ORD].[CustomerKiboLastDeliveryDate]
+                          ,[ORD].[PMEmpID]
+                          ,[ORD].[TransEmpID]
+                          ,[ORD].[OrderContent]
+                          ,[ORD].[BseID]
+                          ,[ORD].[OrderRequireMM]
+                          ,[ORD].[OrderBasicMM]
+                          ,[ORD].[OrderDetailMM]
+                          ,[ORD].[OrderDevMM]
+                          ,[ORD].[OrderTransMM]
+                          ,[ORD].[OrderManMM]
+                          ,[ORD].[OrderUtMM]
+                          ,[ORD].[OrderCombineTestMM]
+                          ,[ORD].[OrderSystemTestMM]
+                          ,[ORD].[OrderUserTestMM]
+                          ,[ORD].[FileID]
+                          ,[ORD].[RowVersion]
+                          ,[ORD].[DisplayOrder]
+                          ,[ORD].[AccountData]
+                          ,[ORD].[Note]
+                          ,[ORD].[AccessDataLevel]
+                          ,[ORD].[CreatedDate]
+                          ,[ORD].[CreatedBy]
+                          ,[ORD].[UpdatedDate]
+                          ,[ORD].[UpdatedBy]
+                          ,[ORD].[MetaKeyword]
+                          ,[ORD].[MetaDescription]
+                          ,[ORD].[Status]
+                          ,[ORD].[DataStatus]
+                          ,[ORD].[UserAgent]
+                          ,[ORD].[UserHostAddress]
+                          ,[ORD].[UserHostName]
+                          ,[ORD].[RequestDate]
+                          ,[ORD].[RequestBy]
+                          ,[ORD].[ApprovedDate]
+                          ,[ORD].[ApprovedBy]
+                          ,[ORD].[ApprovedStatus]
+                          ,[ORD].[OS]
+                          ,[ORD].[Language]
+                          ,[ORD].[OtherSofts]
+                          ,[ORD].[WarrantyMonths]
+                          ,[ORD].[WarrantyStartDate]
+                          ,[ORD].[CustomerConfirmDate]
+	                      ,[MDT].Name		OrderStatusName
+                      FROM [dbo].[OrderReceiveds] ORD 
+                      LEFT OUTER JOIN [dbo].[MasterDetails] MDT ON MDT.MasterID = 32 AND MDT.MasterDetailCode = ORD.DataStatus
+                      WHERE 1 =1 ";
+
+            if (search!=null && !string.IsNullOrEmpty(search))
+            {
+                sql += " AND UPPER(ISNULL([ORD].[Name],'') +  ISNULL([ORD].[ShortName],'') + ISNULL([MDT].Name,'')) LIKE N'%" + search.ToUpper() + "%'";
+            }
+                        
+            var query = _dataService.GetDbContext().Database.SqlQuery<OrderReceivedViewModel>(sql);
+            return query;
+        }
+
+        private List<OrderReceivedViewModel> AddAttachtment(List<OrderReceivedViewModel> list)
+        {
+            var listReturn = new List<OrderReceivedViewModel>(list);
+            foreach (OrderReceivedViewModel item in listReturn)
+            {
+                //get thong tin file dinh kem cua ung vien tuong ung
+                var fileList = _dataFileService.GetAllByKey("OrderReceiveds", item.ID).ToList();
+                //var fileResultModel = Mapper.Map<List<FileResultViewModel>>(fileList);
+                var fileResultModel = fileList.Adapt<List<FileResultViewModel>>();
+                item.AttachmentFileLists = fileResultModel;
+            }
+            return listReturn;
         }
 
     }

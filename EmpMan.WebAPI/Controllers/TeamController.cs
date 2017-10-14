@@ -7,13 +7,13 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Master;
+using EmpMan.Common.ViewModels.Models.Master;
 using System.Web.Script.Serialization;
 using Mapster;
+using EmpMan.Common;
 
 namespace EmpMan.Web.Controllers
 {
@@ -31,7 +31,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("getall")]
         [HttpGet]
-        //[Permission(Action = "Read", Function = "USER")]
+        //[Permission(Action = FunctionActions.READ, Function = FunctionConstants.TEAM)]
         public HttpResponseMessage GetAll(HttpRequestMessage request)
         {
             return CreateHttpResponse(request, () =>
@@ -46,10 +46,10 @@ namespace EmpMan.Web.Controllers
             });
         }
 
-        [Route("getall")]
+        [Route("getallpagingbydept")]
         [HttpGet]
-        //[Permission(Action = "Read", Function = "USER")]
-        public HttpResponseMessage GetAll(HttpRequestMessage request, int? filterDeptID, string keyword, int page, int pageSize = 20)
+        //[Permission(Action = FunctionActions.READ, Function = FunctionConstants.TEAM)]
+        public HttpResponseMessage GetAllByDept(HttpRequestMessage request, string keyword, int page, int pageSize = 20, int? filterDeptID=null)
         {
             return CreateHttpResponse(request, () =>
             {
@@ -57,7 +57,7 @@ namespace EmpMan.Web.Controllers
                 var model = _dataService.GetAll(filterDeptID, keyword);
 
                 totalRow = model.Count();
-                var query = model.OrderByDescending(x => x.CreatedDate).Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                var query = model.OrderByDescending(x => x.Name).Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
                 //var responseData = Mapper.Map<List<Team>, List<TeamViewModel>>(query);
                 var responseData = query.Adapt<List<Team>, List<TeamViewModel>>();
@@ -75,7 +75,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("getallpaging")]
         [HttpGet]
-        //[Permission(Action = "Read", Function = "USER")]
+        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.TEAM)]
         public HttpResponseMessage GetAll(HttpRequestMessage request, string keyword, int page, int pageSize = 20)
         {
             return CreateHttpResponse(request, () =>
@@ -85,7 +85,7 @@ namespace EmpMan.Web.Controllers
 
                 totalRow = model.Count();
 
-                var query = model.OrderByDescending(x => x.CreatedDate).Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                var query = model.OrderByDescending(x => x.Name).Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
                 //var responseData = Mapper.Map<List<Team>, List<TeamViewModel>>(query);
                 var responseData = query.Adapt<List<Team>, List<TeamViewModel>>();
@@ -104,7 +104,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("detail/{id:int}")]
         [HttpGet]
-        //[Permission(Action = "Read", Function = "USER")]
+        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.TEAM)]
         public HttpResponseMessage GetById(HttpRequestMessage request, int id)
         {
             return CreateHttpResponse(request, () =>
@@ -122,7 +122,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("add")]
         [HttpPost]
-        //[Permission(Action = "Create", Function = "USER")]
+        [Permission(Action = FunctionActions.CREATE, Function = FunctionConstants.TEAM)]
         public HttpResponseMessage Create(HttpRequestMessage request, TeamViewModel dataVm)
         {
             return CreateHttpResponse(request, () =>
@@ -137,13 +137,13 @@ namespace EmpMan.Web.Controllers
                     Team newData = new Team();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
+
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
                     //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
                     
 
                     newData.UpdateTeam(dataVm);
@@ -159,7 +159,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("update")]
         [HttpPut]
-        //[Permission(Action = "Update", Function = "USER")]
+        [Permission(Action = FunctionActions.UPDATE, Function = FunctionConstants.TEAM)]
         public HttpResponseMessage Update(HttpRequestMessage request, TeamViewModel dataVm)
         {
             return CreateHttpResponse(request, () =>
@@ -192,7 +192,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("delete")]
         [HttpDelete]
-        //[Permission(Action = "Delete", Function = "USER")]
+        [Permission(Action = FunctionActions.DELETE, Function = FunctionConstants.TEAM)]
         public HttpResponseMessage Delete(HttpRequestMessage request, int id)
         {
             return CreateHttpResponse(request, () =>
@@ -221,6 +221,7 @@ namespace EmpMan.Web.Controllers
 
         [Route("deletemulti")]
         [HttpDelete]
+        [Permission(Action = FunctionActions.DELETE, Function = FunctionConstants.TEAM)]
         public HttpResponseMessage DeleteMulti(HttpRequestMessage request, string checkedItems)
         {
             return CreateHttpResponse(request, () =>

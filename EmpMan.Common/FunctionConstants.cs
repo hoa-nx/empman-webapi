@@ -20,11 +20,19 @@ namespace EmpMan.Common
         public const string MASTER_DETAIL = "MASTER_DETAIL";
         public const string EMP_CARD = "EMP_CARD";
         public const string EMP_BASIC = "EMP_BASIC";
+        public const string EMP_ALLOWANCE = "EMP_ALLOWANCE";
+        public const string EMP_CONTRACT = "EMP_CONTRACT";
+        public const string EMP_EXPANDABLE = "EMP_EXPANDABLE";
+        public const string EMP_TIMELINE = "EMP_TIMELINE";
         public const string EMP_WORK = "EMP_WORK";
+
+        public const string ERROR = "ERROR";
+
         public const string ESTIMATE = "ESTIMATE";
         public const string ORDER_RECEIVED = "ORDER_RECEIVED";
         public const string PROJECT = "PROJECT";
-        public const string PROJECT_DETAIL = "PROJECT_DETAIL";
+        public const string PROJECT_DETAIL_LIST = "PROJECT_DETAIL_LIST";
+        public const string PROJECT_LIST = "PROJECT_LIST";
         public const string TARGET_LIST = "TARGET_LIST";
         public const string TARGET_EDIT = "TARGET_EDIT";
         public const string REVENUE_LIST = "REVENUE_LIST";
@@ -40,8 +48,7 @@ namespace EmpMan.Common
 
         public const string FILE = "FILE";
         public const string FILE_EDIT = "FILE_EDIT";
-
-        public const string EMP_EXPANDABLE = "EMP_EXPANDABLE";
+        public const string FILE_LIST = "FILE_LIST";
 
         public const string ROLE = "ROLE";
         public const string USER = "USER";
@@ -51,6 +58,7 @@ namespace EmpMan.Common
         public const string EXPORT = "EXPORT";
 
         public const string STATISTIC = "STATISTIC";
+        public const string JOB_SCHEDULER = "JOB_SCHEDULER";
 
     }
 }

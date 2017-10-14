@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Globalization;
 using EmpMan.Model.Models;
-using EmpMan.Web.Models;
-using EmpMan.Web.Models.Emp;
-using EmpMan.Web.Models.Project;
-using EmpMan.Web.Models.Master;
-using EmpMan.Web.Models.Revenue;
-using EmpMan.Web.Models.File;
+using EmpMan.Common.ViewModels.Models.Emp;
+using EmpMan.Common.ViewModels.Models.Project;
+using EmpMan.Common.ViewModels.Models.Master;
+using EmpMan.Common.ViewModels.Models.Revenue;
+using EmpMan.Common.ViewModels.Models.File;
 using System.Linq;
-using EmpMan.Web.Models.Schedule;
-using EmpMan.Common.ViewModels;
+using EmpMan.Common.ViewModels.Models.Post;
+using EmpMan.Web.Common.ViewModels.Schedule;
+using EmpMan.Common.ViewModels.Models;
+using EmpMan.Web.Common.ViewModels.Project;
+using EmpMan.Common.ViewModels.Models.Product;
+using EmpMan.Common.ViewModels.Models.Common;
 
 namespace EmpMan.Web.Infrastructure.Extensions
 {
@@ -188,7 +191,7 @@ namespace EmpMan.Web.Infrastructure.Extensions
             appUser.Address = appUserViewModel.Address;
             appUser.UserName = appUserViewModel.UserName;
             appUser.PhoneNumber = appUserViewModel.PhoneNumber;
-            appUser.Gender = appUserViewModel.Gender == "True" ? true : false;
+            appUser.Gender = appUserViewModel.Gender == "1" ? true : false;
             appUser.Status = appUserViewModel.Status;
             appUser.Address = appUserViewModel.Address;
             appUser.Avatar = appUserViewModel.Avatar;
@@ -2954,5 +2957,89 @@ namespace EmpMan.Web.Infrastructure.Extensions
             //item dùng chung-End
 
         }
+
+        /// <summary>
+        /// cập nhật JobScheduler
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="dataVm"></param>
+        public static void UpdateJobScheduler(this JobScheduler data, JobSchedulerViewModel dataVm)
+        {
+            data.ID = dataVm.ID;
+            data.JobType = dataVm.JobType;
+            data.Name = dataVm.Name;
+            data.ShortName = dataVm.ShortName;
+            data.TableNameRelation = dataVm.TableNameRelation;
+            data.TableKey = dataVm.TableKey;
+            data.TableKeyID = dataVm.TableKeyID;
+            data.ScheduleRunJobDate = dataVm.ScheduleRunJobDate;
+            data.EventDate = dataVm.EventDate;
+            data.JobContent = dataVm.JobContent;
+            data.FromEmail = dataVm.FromEmail;
+            data.ToNotiEmailList = dataVm.ToNotiEmailList;
+            data.CcNotiEmailList = dataVm.CcNotiEmailList;
+            data.BccNotiEmailList = dataVm.BccNotiEmailList;
+            data.SMSFromNumber = dataVm.SMSFromNumber;
+            data.SMSToNumber = dataVm.SMSToNumber;
+            data.SMSContent = dataVm.SMSContent;
+            data.JobStatus = dataVm.JobStatus;
+            data.ActualRunJobDate = dataVm.ActualRunJobDate;
+            data.TemplateID = dataVm.TemplateID;
+            data.AttachmementID = dataVm.AttachmementID;
+            data.IsChanged = dataVm.IsChanged;
+            data.SMSNotifyRemider = dataVm.SMSNotifyRemider;
+            data.EmailNotifyRemider = dataVm.EmailNotifyRemider;
+            data.SMSNotifyCount = dataVm.SMSNotifyCount;
+            data.EmailNotifyCount = dataVm.EmailNotifyCount;
+            data.TemplateText = dataVm.TemplateText;
+            data.LocationEvent = dataVm.LocationEvent;
+            data.EventUser = dataVm.EventUser;
+
+            //item dùng chung-Start
+            data.RowVersion = dataVm.RowVersion;
+            data.DisplayOrder = dataVm.DisplayOrder;
+            data.AccountData = dataVm.AccountData;
+            data.Note = dataVm.Note;
+
+            data.AccessDataLevel = dataVm.AccessDataLevel;
+            data.CreatedDate = dataVm.CreatedDate;
+            data.CreatedBy = dataVm.CreatedBy;
+            data.UpdatedDate = dataVm.UpdatedDate;
+            data.UpdatedBy = dataVm.UpdatedBy;
+            data.MetaKeyword = dataVm.MetaKeyword;
+            data.MetaDescription = dataVm.MetaDescription;
+            data.Status = dataVm.Status;
+            data.DataStatus = dataVm.DataStatus;
+
+            data.RequestBy = dataVm.RequestBy;
+            data.RequestDate = dataVm.RequestDate;
+            data.ApprovedBy = dataVm.ApprovedBy;
+            data.ApprovedDate = dataVm.ApprovedDate;
+            data.ApprovedStatus = dataVm.ApprovedStatus;
+
+            //data.Yobi_Text1 = dataVm.Yobi_Text1;
+            //data.Yobi_Text2 = dataVm.Yobi_Text2;
+            //data.Yobi_Text3 = dataVm.Yobi_Text3;
+            //data.Yobi_Text4 = dataVm.Yobi_Text4;
+            //data.Yobi_Text5 = dataVm.Yobi_Text5;
+            //data.Yobi_Number1 = dataVm.Yobi_Number1;
+            //data.Yobi_Number2 = dataVm.Yobi_Number2;
+            //data.Yobi_Number3 = dataVm.Yobi_Number3;
+            //data.Yobi_Number4 = dataVm.Yobi_Number4;
+            //data.Yobi_Number5 = dataVm.Yobi_Number5;
+            //data.Yobi_Decimal1 = dataVm.Yobi_Decimal1;
+            //data.Yobi_Decimal2 = dataVm.Yobi_Decimal2;
+            //data.Yobi_Decimal3 = dataVm.Yobi_Decimal3;
+            //data.Yobi_Decimal4 = dataVm.Yobi_Decimal4;
+            //data.Yobi_Decimal5 = dataVm.Yobi_Decimal5;
+            //data.Yobi_Date1 = dataVm.Yobi_Date1;
+            //data.Yobi_Date2 = dataVm.Yobi_Date2;
+            //data.Yobi_Date3 = dataVm.Yobi_Date3;
+            //data.Yobi_Date4 = dataVm.Yobi_Date4;
+            //data.Yobi_Date5 = dataVm.Yobi_Date5;
+            //item dùng chung-End
+
+        }
+
     }
 }

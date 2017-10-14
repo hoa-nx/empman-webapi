@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
-using EmpMan.Web.Models.Common;
+using EmpMan.Common.ViewModels.Models.Common;
 
 namespace EmpMan.Web.SignalR
 {

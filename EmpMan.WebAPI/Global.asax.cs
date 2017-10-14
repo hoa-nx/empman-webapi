@@ -4,7 +4,8 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
 using EmpMan.Web.Mappings;
-using EmpMan.Web.Infrastructure.JobScheduler;
+using EmpMan.Web.Infrastructure.JobSchedule;
+using System.Web;
 
 namespace EmpMan.Web
 {
@@ -29,8 +30,12 @@ namespace EmpMan.Web
              */
             //For ASP.NET Web Applications, add the following line of code to the Application_Start method in Global.asax.cs: 
             //SqlServerTypes.Utilities.LoadNativeAssemblies(Server.MapPath("~/bin"));
+
             //start job de thuc thi cong viec dinh ky
-            //JobScheduler.Start();
+
+            //JobSchedule.StartSendSmsDevInterviewDateNotifyJob();
+            //JobSchedule.StartSendSmsTrialStaffEndTrialDateNotifyJob(2);
+            //JobSchedule.StartSendSmsTrialStaffToDevContractDateNotifyJob(2);
         }
 
         protected void Application_BeginRequest(object sender, EventArgs e)

@@ -7,15 +7,16 @@ using EmpMan.Model.Models;
 using EmpMan.Service;
 using EmpMan.Web.Infrastructure.Core;
 using EmpMan.Web.Infrastructure.Extensions;
-using EmpMan.Web.Models;
+
 using EmpMan.Web.Providers;
 using System.Linq;
 using System;
-using EmpMan.Web.Models.Master;
+using EmpMan.Common.ViewModels.Models.Master;
 using System.Web.Script.Serialization;
-using EmpMan.Web.Models.Emp;
+using EmpMan.Common.ViewModels.Models.Emp;
 using EmpMan.Common;
 using Mapster;
+using EmpMan.Common.ViewModels;
 
 namespace EmpMan.Web.Controllers
 {
@@ -77,6 +78,110 @@ namespace EmpMan.Web.Controllers
             });
         }
 
+        [Route("getallpaging")]
+        [HttpPost]
+        [Permission(Action = FunctionActions.READ, Function = FunctionConstants.RECRUITMENT_STAFF)]
+        public HttpResponseMessage GetAll(HttpRequestMessage request, SearchItemViewModel searchParam)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                int totalRow = 0;
+                int page = 0;
+                int pageSize = 0;
+
+                var response = request.CreateResponse(HttpStatusCode.BadRequest, "Không get được data");
+                if (searchParam != null)
+                {
+                    page = searchParam.Page.Value;
+                    pageSize = searchParam.PageSize.Value;
+
+                    var model = GetRecruimentByType(searchParam.NumberItems.ToArray(), searchParam.Keyword);
+
+                    totalRow = model.Count();
+
+                    var query = model.OrderByDescending(x => x.ID).Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                    var paginationSet = new PaginationSet<RecruitmentViewModel>()
+                    {
+                        Items = query,
+                        PageIndex = page,
+                        TotalRows = totalRow,
+                        PageSize = pageSize
+                    };
+                    response = request.CreateResponse(HttpStatusCode.OK, paginationSet);
+                }
+
+                return response;
+            });
+        }
+
+        private IEnumerable<RecruitmentViewModel> GetRecruimentByType(int?[] recruitmentTypeID, string keyword)
+        {
+
+            string sql = @"
+                /****** Script for SelectTopNRows command from SSMS  ******/
+                SELECT REC.[ID]
+                      ,REC.[No]
+                      ,REC.[Name]
+                      ,REC.[ShortName]
+                      ,REC.[RecruitmentTypeMasterID]
+                      ,REC.[RecruitmentTypeMasterDetailID]
+                      ,REC.[CvCompanyFolderPath]
+                      ,REC.[CvDeptFolderPath]
+                      ,REC.[CvCount]
+                      ,REC.[SendMailFromEmpID]
+                      ,REC.[SendMailToEmpID]
+                      ,REC.[AnsRecruitDeptDeadlineDate]
+                      ,REC.[AnsLocalDeadlineDate]
+                      ,REC.[IsNotification]
+                      ,REC.[ExpireDate]
+                      ,REC.[Content]
+                      ,REC.[IsFinished]
+                      ,REC.[FileID]
+                      ,REC.[RowVersion]
+                      ,REC.[DisplayOrder]
+                      ,REC.[AccountData]
+                      ,REC.[Note]
+                      ,REC.[AccessDataLevel]
+                      ,REC.[CreatedDate]
+                      ,REC.[CreatedBy]
+                      ,REC.[UpdatedDate]
+                      ,REC.[UpdatedBy]
+                      ,REC.[MetaKeyword]
+                      ,REC.[MetaDescription]
+                      ,REC.[Status]
+                      ,REC.[DataStatus]
+                      ,REC.[UserAgent]
+                      ,REC.[UserHostAddress]
+                      ,REC.[UserHostName]
+                      ,REC.[RequestDate]
+                      ,REC.[RequestBy]
+                      ,REC.[ApprovedDate]
+                      ,REC.[ApprovedBy]
+                      ,REC.[ApprovedStatus]
+	                  ,MDE.[Name] RecruitmentTypeName
+                      ,RES.ReceivedStaffCount
+                  FROM [dbo].[Recruitments] REC
+                  LEFT OUTER JOIN MasterDetails MDE ON REC.RecruitmentTypeMasterID = MDE.MasterID AND REC.RecruitmentTypeMasterDetailID = MDE.MasterDetailCode
+                  LEFT OUTER JOIN (SELECT RES.RecruitmentID , COUNT(*) ReceivedStaffCount FROM RecruitmentStaffs RES WHERE RES.DeptReceived IN(@DeptReceived@) AND RES.SystemEmpID >0  GROUP BY RES.RecruitmentID)  RES ON REC.ID = RES.RecruitmentID  
+                    
+                  ";
+
+            //thay thep dept ID
+            sql = sql.Replace("@DeptReceived@",  User.Identity.GetApplicationUser().DeptID.ToString());
+
+            var query = _dataService.GetDbContext().Database.SqlQuery<RecruitmentViewModel>(sql).AsEnumerable();
+
+            if (!string.IsNullOrEmpty(keyword))
+                query = query.Where(x => (x.Name + x.Note + x.ID + x.CvDeptFolderPath + x.CvCompanyFolderPath).ToLower().Contains(keyword.ToLower()));
+
+            if (recruitmentTypeID != null && recruitmentTypeID.Count() > 0)
+                query = query.Where(x => recruitmentTypeID.Contains(x.RecruitmentTypeMasterDetailID));
+
+            return query;
+        }
+        
+
         [Route("detail/{id}")]
         [HttpGet]
         [Permission(Action = FunctionActions.READ, Function = FunctionConstants.RECRUITMENT)]
@@ -112,13 +217,13 @@ namespace EmpMan.Web.Controllers
                     Recruitment newData = new Recruitment();
 
                     /** cập nhật các thông tin chung **/
-                    newData.CreatedDate = DateTime.Now;
-                    newData.CreatedBy = User.Identity.Name;
-                    
-                    newData.UpdatedDate = DateTime.Now;
-                    newData.UpdatedBy = User.Identity.Name;
+                    dataVm.CreatedDate = DateTime.Now;
+                    dataVm.CreatedBy = User.Identity.Name;
+
+                    dataVm.UpdatedDate = DateTime.Now;
+                    dataVm.UpdatedBy = User.Identity.Name;
                     //Người sở hữu dữ liệu
-                    newData.AccountData = User.Identity.GetApplicationUser().Email;
+                    dataVm.AccountData = User.Identity.GetApplicationUser().Email;
                     
 
                     newData.UpdateRecruitment(dataVm);

@@ -295,6 +295,17 @@ namespace EmpMan.Service
             //get data 
             var model = GetByAccount(account);
 
+            if (model == null)
+            {
+                //khong lay duoc data setting thi xem nhu khong co the get data nhan vien
+                if (isWhereTrueStringAppend)
+                {
+                    sql = " WHERE 1 =1 ";
+                }
+                sql += " AND 1 !=1 ";
+                return sql;
+            }
+
             var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
             int month = 4;
             int year = DateTime.Now.Year;
@@ -543,6 +554,13 @@ namespace EmpMan.Service
 
             //get data 
             var model = GetByAccount(account);
+
+            if (model == null)
+            {
+                //khong lay duoc data setting thi xem nhu khong co the get data nhan vien
+                
+                return "";
+            }
 
             var empFilterViewModel = new JavaScriptSerializer().Deserialize<EmpFilterViewModel>(model.EmpFilterDataValue);
             if (empFilterViewModel != null)

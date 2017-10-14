@@ -45,7 +45,7 @@ INNER JOIN (
 	WHERE 
 		WOK.WorkEmpTypeMasterID = 31 
 	AND WOK.WorkEmpTypeMasterDetailID =1  --loai nhan su tu dept khac chuyen sang
-	AND WOK.DeptID=1 
+	AND WOK.DeptID=@DeptID
 ) WOK
 ON (
 	(WOK.EndDate IS NOT NULL AND dates.ymd between WOK.StartDate AND WOK.EndDate) 

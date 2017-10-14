@@ -65,6 +65,11 @@ namespace EmpMan.Model.Models
         public DateTime? ScheduleRunJobDate { set; get; }
 
         /// <summary>
+        /// Thời gian thực hiện event
+        /// </summary>
+        public DateTime? EventDate { set; get; }
+
+        /// <summary>
         /// Nội dung job
         /// </summary>
         public string JobContent { set; get; }
@@ -117,5 +122,49 @@ namespace EmpMan.Model.Models
         /// File đính kèm
         /// </summary>
         public int? AttachmementID { set; get; }
+
+        /// <summary>
+        /// Có thay đổi nội dung của job
+        /// </summary>
+        public bool? IsChanged { set; get;}
+
+        /// <summary>
+        /// Số lần gửi sms nhắc lại
+        /// </summary>
+        public int? SMSNotifyRemider { set; get; }
+
+        /// <summary>
+        /// Số lần gửi email nhắc lại
+        /// </summary>
+        public int? EmailNotifyRemider { set; get; }
+
+        /// <summary>
+        /// Số lần gửi sms
+        /// </summary>
+        public int? SMSNotifyCount { set; get; }
+
+        /// <summary>
+        /// Số lần gửi email
+        /// </summary>
+        public int? EmailNotifyCount { set; get; }
+
+        /// <summary>
+        /// Chứa nội dung gửi ( nếu như không có mail template ID
+        /// </summary>
+        public string TemplateText { set; get; }
+
+        /// <summary>
+        /// Nơi diễn ra sự kiện
+        /// </summary>
+        public string LocationEvent { set; get; }
+
+        /// <summary>
+        /// Người đối ứng event
+        /// </summary>
+        public string EventUser { set; get; }
+
+        //Not mapping item
+        [NotMapped]
+        public DateTime? ContractDate { set; get; }
     }
 }
