@@ -571,210 +571,223 @@ namespace EmpMan.Web.Controllers
 
                 UNION ALL 
                 --Lay danh sach cac ngay co ngay ket thuc nhu chuyen ve dept cu , onsite tro ve
-                        SELECT                      
-                            EMW.ID
-                        ,EMW.EmpID
-                        ,EMW.EndDate
-                        ,EMW.EndDate
-                        /*
-                        ,EMW.CompanyID
-                        ,EMW.IsChangeCompanyID
-                        ,COM.ShortName CompanyName
-                        ,EMW.DeptID
-                        ,EMW.IsChangeDeptID
-                        ,DEP.ShortName DeptName
-                        ,EMW.TeamID
-                        ,EMW.IsChangeTeamID
-                        ,TEA.ShortName TeamName
-                        ,EMW.PositionID
-                        ,EMW.IsChangePositionID
-                        ,POS.ShortName PositionName
-                        ,EMW.EmpTypeMasterID
-                        ,EMW.EmpTypeMasterDetailID
-                        ,EMW.IsChangeEmpType
-                        ,ETP.ShortName EmpTypeName
-                        ,EMW.JapaneseLevelMasterID
-                        ,EMW.JapaneseLevelMasterDetailID
-                        ,EMW.IsChangeJapaneseLevel
-                        ,JAP.ShortName JapaneseLevelName
-                        ,EMW.BusinessAllowanceLevelMasterID
-                        ,EMW.BusinessAllowanceLevelMasterDetailID
-                        ,EMW.IsChangeBusinessAllowanceLevel
-                        ,ALO.ShortName BusinessAllowanceLevelName
-                        ,EMW.RoomWithInternetAllowanceLevelMasterID
-                        ,EMW.RoomWithInternetAllowanceLevelMasterDetailID
-                        ,EMW.IsChangeRoomWithInternetAllowanceLevel
-                        ,rwi.ShortName RoomWithInternetAllowanceLevelName
-                        ,EMW.RoomNoInternetAllowanceLevelMasterID
-                        ,EMW.RoomNoInternetAllowanceLevelMasterDetailID
-                        ,EMW.IsChangeRoomNoInternetAllowanceLevel
-                        ,rni.ShortName RoomNoInternetAllowanceLevelName
-                        ,EMW.BseAllowanceLevelMasterID
-                        ,EMW.BseAllowanceLevelMasterDetailID
-                        ,EMW.IsChangeBseAllowanceLevel
-                        ,bse.ShortName BseAllowanceLevelName
-                        ,EMW.CollectMasterID
-                        ,EMW.CollectMasterDetailID
-                        ,EMW.IsChangeCollect
-                        */
-                        ,col.ShortName CollectName
-                        /*
-                        ,EMW.EducationLevelMasterID
-                        ,EMW.EducationLevelMasterDetailID
-                        ,EMW.IsChangeEducationLevel
-                        ,edu.ShortName EducationLevelName
-                        ,EMW.ContractTypeMasterID
-                        ,EMW.ContractTypeMasterDetailID
-                        ,EMW.IsChangeContractType
-                        ,con.ShortName ContractTypeName
-                        ,EMW.SignDate
-                        ,EMW.Result
-                        ,EMW.Action
-                        ,EMW.DisplayOrder
-                        ,EMW.AccountData
-                        */
-                        ,EMW.Note
-                        /*
-                        ,EMW.AccessDataLevel
-                        ,EMW.CreatedDate
-                        ,EMW.CreatedBy
-                        ,EMW.UpdatedDate
-                        ,EMW.UpdatedBy
-                        ,EMW.MetaKeyword
-                        ,EMW.MetaDescription
-                        ,EMW.Status
-                        ,EMW.DataStatus
-                        ,EMW.UserAgent
-                        ,EMW.UserHostAddress
-                        ,EMW.UserHostName
-                        ,EMW.RequestDate
-                        ,EMW.RequestBy
-                        ,EMW.ApprovedDate
-                        ,EMW.ApprovedBy
-                        ,EMW.ApprovedStatus
-                        ,EMW.Company2ID
-                        ,EMW.IsChangeCompany2ID
-                        ,CO2.ShortName CompanyName2
-                        ,EMW.Dept2ID
-                        ,EMW.IsChangeDept2ID
-                        ,DE2.ShortName DeptName2
-                        ,EMW.Team2ID
-                        ,EMW.IsChangeTeam2ID
-                        ,TE2.ShortName TeamName2
-                        ,EMW.Position2ID
-                        ,EMW.IsChangePosition2ID
-                        ,PO2.ShortName PositionName2
-                        ,EMW.WorkEmpTypeMasterID
-                        ,EMW.WorkEmpTypeMasterDetailID
-                        ,EMW.IsChangeWorkEmpType
-                        ,WET.ShortName WorkEmpTypeName
-                        ,EMW.OnsiteCustomerID
-                        ,EMW.IsChangeOnsiteCustomerID
-                        ,CUS.ShortName OnsiteCustomerName
-                        */
-                        ,IIF(EMW.IsChangeCompanyID = 1 ,  com.ShortName,'') 
-	                        + IIF(EMW.IsChangeDeptID = 1 ,dep.ShortName,'') 
-	                        + IIF(EMW.IsChangeTeamID = 1 ,  tea.ShortName,'') 
-	                        + IIF(EMW.IsChangePositionID = 1 ,  pos.ShortName,'') 
-	                        + IIF(EMW.IsChangeCompany2ID = 1 ,  co2.ShortName,'') 
-	                        + IIF(EMW.IsChangeDept2ID = 1 ,  de2.ShortName,'') 
-	                        + IIF(EMW.IsChangeTeam2ID = 1 ,  te2.ShortName,'') 
-	                        + IIF(EMW.IsChangePosition2ID = 1 ,  po2.ShortName,'') 
-	                        + IIF(EMW.IsChangeWorkEmpType = 1 ,  wet.ShortName,'') 
-	                        + IIF(EMW.IsChangeEmpType = 1 ,  etp.ShortName,'') 
-	                        + IIF(EMW.IsChangeJapaneseLevel = 1 ,  jap.ShortName,'') 
-	                        + IIF(EMW.IsChangeBusinessAllowanceLevel = 1 ,  alo.ShortName,'') 
-	                        + IIF(EMW.IsChangeRoomWithInternetAllowanceLevel = 1 ,  rwi.ShortName,'') 
-	                        + IIF(EMW.IsChangeRoomNoInternetAllowanceLevel = 1 ,  rni.ShortName,'') 
-	                        + IIF(EMW.IsChangeBseAllowanceLevel = 1 ,  bse.ShortName,'') 
-	                        + IIF(EMW.IsChangeCollect = 1 ,  col.ShortName,'') 
-	                        + IIF(EMW.IsChangeEducationLevel = 1 ,  edu.ShortName,'') 
-	                        + IIF(EMW.IsChangeContractType = 1 ,  con.ShortName,'') 
-	                        + IIF(EMW.IsChangeOnsiteCustomerID = 1 , N'Về nước sau khi onsite tại KH ' + ISNULL(cus.ShortName,''),'') ChangeContent
+                        SELECT 
+                            DET.EmpID           ID
+                            ,DET.FullName       Name
+                            ,DET.StartDate      StartDate
+                            ,DET.ChangeContent  Title
+                            ,DET.Note           Description
+                            ,DET.CssName        CssName
+                            ,DET.Icon           Icon
+                            ,DET.Avatar         Avatar
+                            ,DET.CollectName    CollectName
+                            ,DET.KeikenFromContractMonths   KeikenFromContractMonths
+                            ,DET.Age                        Age
+                        FROM
+                                (SELECT                      
+                                EMW.ID
+                            ,EMW.EmpID
+                            ,EMW.EndDate
+                            ,EMW.EndDate
+                            /*
+                            ,EMW.CompanyID
+                            ,EMW.IsChangeCompanyID
+                            ,COM.ShortName CompanyName
+                            ,EMW.DeptID
+                            ,EMW.IsChangeDeptID
+                            ,DEP.ShortName DeptName
+                            ,EMW.TeamID
+                            ,EMW.IsChangeTeamID
+                            ,TEA.ShortName TeamName
+                            ,EMW.PositionID
+                            ,EMW.IsChangePositionID
+                            ,POS.ShortName PositionName
+                            ,EMW.EmpTypeMasterID
+                            ,EMW.EmpTypeMasterDetailID
+                            ,EMW.IsChangeEmpType
+                            ,ETP.ShortName EmpTypeName
+                            ,EMW.JapaneseLevelMasterID
+                            ,EMW.JapaneseLevelMasterDetailID
+                            ,EMW.IsChangeJapaneseLevel
+                            ,JAP.ShortName JapaneseLevelName
+                            ,EMW.BusinessAllowanceLevelMasterID
+                            ,EMW.BusinessAllowanceLevelMasterDetailID
+                            ,EMW.IsChangeBusinessAllowanceLevel
+                            ,ALO.ShortName BusinessAllowanceLevelName
+                            ,EMW.RoomWithInternetAllowanceLevelMasterID
+                            ,EMW.RoomWithInternetAllowanceLevelMasterDetailID
+                            ,EMW.IsChangeRoomWithInternetAllowanceLevel
+                            ,rwi.ShortName RoomWithInternetAllowanceLevelName
+                            ,EMW.RoomNoInternetAllowanceLevelMasterID
+                            ,EMW.RoomNoInternetAllowanceLevelMasterDetailID
+                            ,EMW.IsChangeRoomNoInternetAllowanceLevel
+                            ,rni.ShortName RoomNoInternetAllowanceLevelName
+                            ,EMW.BseAllowanceLevelMasterID
+                            ,EMW.BseAllowanceLevelMasterDetailID
+                            ,EMW.IsChangeBseAllowanceLevel
+                            ,bse.ShortName BseAllowanceLevelName
+                            ,EMW.CollectMasterID
+                            ,EMW.CollectMasterDetailID
+                            ,EMW.IsChangeCollect
+                            */
+                            ,col.ShortName CollectName
+                            /*
+                            ,EMW.EducationLevelMasterID
+                            ,EMW.EducationLevelMasterDetailID
+                            ,EMW.IsChangeEducationLevel
+                            ,edu.ShortName EducationLevelName
+                            ,EMW.ContractTypeMasterID
+                            ,EMW.ContractTypeMasterDetailID
+                            ,EMW.IsChangeContractType
+                            ,con.ShortName ContractTypeName
+                            ,EMW.SignDate
+                            ,EMW.Result
+                            ,EMW.Action
+                            ,EMW.DisplayOrder
+                            ,EMW.AccountData
+                            */
+                            ,EMW.Note
+                            /*
+                            ,EMW.AccessDataLevel
+                            ,EMW.CreatedDate
+                            ,EMW.CreatedBy
+                            ,EMW.UpdatedDate
+                            ,EMW.UpdatedBy
+                            ,EMW.MetaKeyword
+                            ,EMW.MetaDescription
+                            ,EMW.Status
+                            ,EMW.DataStatus
+                            ,EMW.UserAgent
+                            ,EMW.UserHostAddress
+                            ,EMW.UserHostName
+                            ,EMW.RequestDate
+                            ,EMW.RequestBy
+                            ,EMW.ApprovedDate
+                            ,EMW.ApprovedBy
+                            ,EMW.ApprovedStatus
+                            ,EMW.Company2ID
+                            ,EMW.IsChangeCompany2ID
+                            ,CO2.ShortName CompanyName2
+                            ,EMW.Dept2ID
+                            ,EMW.IsChangeDept2ID
+                            ,DE2.ShortName DeptName2
+                            ,EMW.Team2ID
+                            ,EMW.IsChangeTeam2ID
+                            ,TE2.ShortName TeamName2
+                            ,EMW.Position2ID
+                            ,EMW.IsChangePosition2ID
+                            ,PO2.ShortName PositionName2
+                            ,EMW.WorkEmpTypeMasterID
+                            ,EMW.WorkEmpTypeMasterDetailID
+                            ,EMW.IsChangeWorkEmpType
+                            ,WET.ShortName WorkEmpTypeName
+                            ,EMW.OnsiteCustomerID
+                            ,EMW.IsChangeOnsiteCustomerID
+                            ,CUS.ShortName OnsiteCustomerName
+                            */
+                            ,IIF(EMW.IsChangeCompanyID = 1 ,  com.ShortName,'') 
+	                            + IIF(EMW.IsChangeDeptID = 1 ,dep.ShortName,'') 
+	                            + IIF(EMW.IsChangeTeamID = 1 ,  tea.ShortName,'') 
+	                            + IIF(EMW.IsChangePositionID = 1 ,  pos.ShortName,'') 
+	                            + IIF(EMW.IsChangeCompany2ID = 1 ,  co2.ShortName,'') 
+	                            + IIF(EMW.IsChangeDept2ID = 1 ,  de2.ShortName,'') 
+	                            + IIF(EMW.IsChangeTeam2ID = 1 ,  te2.ShortName,'') 
+	                            + IIF(EMW.IsChangePosition2ID = 1 ,  po2.ShortName,'') 
+	                            + IIF(EMW.IsChangeWorkEmpType = 1 ,  wet.ShortName,'') 
+	                            + IIF(EMW.IsChangeEmpType = 1 ,  etp.ShortName,'') 
+	                            + IIF(EMW.IsChangeJapaneseLevel = 1 ,  jap.ShortName,'') 
+	                            + IIF(EMW.IsChangeBusinessAllowanceLevel = 1 ,  alo.ShortName,'') 
+	                            + IIF(EMW.IsChangeRoomWithInternetAllowanceLevel = 1 ,  rwi.ShortName,'') 
+	                            + IIF(EMW.IsChangeRoomNoInternetAllowanceLevel = 1 ,  rni.ShortName,'') 
+	                            + IIF(EMW.IsChangeBseAllowanceLevel = 1 ,  bse.ShortName,'') 
+	                            + IIF(EMW.IsChangeCollect = 1 ,  col.ShortName,'') 
+	                            + IIF(EMW.IsChangeEducationLevel = 1 ,  edu.ShortName,'') 
+	                            + IIF(EMW.IsChangeContractType = 1 ,  con.ShortName,'') 
+	                            + IIF(EMW.IsChangeOnsiteCustomerID = 1 , N'Về nước sau khi onsite tại KH ' + ISNULL(cus.ShortName,''),'') ChangeContent
 	
-                        , case 
-	                        when (EMW.IsChangeCompanyID = 1 
-		                        OR EMW.IsChangeDeptID = 1 
-		                        OR EMW.IsChangeTeamID = 1 
-		                        OR EMW.IsChangePositionID = 1 
-		                        OR EMW.IsChangeCompany2ID = 1  
-		                        OR EMW.IsChangeDept2ID = 1
-		                        OR EMW.IsChangeTeam2ID = 1 
-		                        OR EMW.IsChangePosition2ID = 1 ) then N'cd-primary' 
-	                        when ( EMW.IsChangeWorkEmpType = 1 OR EMW.IsChangeEmpType = 1 ) then N'cd-info' 
-	                        when (EMW.IsChangeJapaneseLevel = 1 
-		                        OR EMW.IsChangeBusinessAllowanceLevel = 1 
-		                        OR EMW.IsChangeRoomWithInternetAllowanceLevel = 1
-		                        OR EMW.IsChangeRoomNoInternetAllowanceLevel = 1
-		                        OR EMW.IsChangeBseAllowanceLevel = 1) then N'cd-success' 
-	                        when( EMW.IsChangeCollect = 1 
-		                        OR EMW.IsChangeEducationLevel = 1 ) then  N'cd-info' 
-	                        when (EMW.IsChangeContractType = 1 ) then N'cd-success' 
-	                        when (EMW.IsChangeOnsiteCustomerID = 1 ) then N'cd-success' 
-	                        else N'cd-info' end  CssName
+                            , case 
+	                            when (EMW.IsChangeCompanyID = 1 
+		                            OR EMW.IsChangeDeptID = 1 
+		                            OR EMW.IsChangeTeamID = 1 
+		                            OR EMW.IsChangePositionID = 1 
+		                            OR EMW.IsChangeCompany2ID = 1  
+		                            OR EMW.IsChangeDept2ID = 1
+		                            OR EMW.IsChangeTeam2ID = 1 
+		                            OR EMW.IsChangePosition2ID = 1 ) then N'cd-primary' 
+	                            when ( EMW.IsChangeWorkEmpType = 1 OR EMW.IsChangeEmpType = 1 ) then N'cd-info' 
+	                            when (EMW.IsChangeJapaneseLevel = 1 
+		                            OR EMW.IsChangeBusinessAllowanceLevel = 1 
+		                            OR EMW.IsChangeRoomWithInternetAllowanceLevel = 1
+		                            OR EMW.IsChangeRoomNoInternetAllowanceLevel = 1
+		                            OR EMW.IsChangeBseAllowanceLevel = 1) then N'cd-success' 
+	                            when( EMW.IsChangeCollect = 1 
+		                            OR EMW.IsChangeEducationLevel = 1 ) then  N'cd-info' 
+	                            when (EMW.IsChangeContractType = 1 ) then N'cd-success' 
+	                            when (EMW.IsChangeOnsiteCustomerID = 1 ) then N'cd-success' 
+	                            else N'cd-info' end  CssName
 
-                        , case 
-	                        when (EMW.IsChangeCompanyID = 1 
-		                        OR EMW.IsChangeDeptID = 1 
-		                        OR EMW.IsChangeTeamID = 1 
-		                        OR EMW.IsChangePositionID = 1 
-		                        OR EMW.IsChangeCompany2ID = 1  
-		                        OR EMW.IsChangeDept2ID = 1
-		                        OR EMW.IsChangeTeam2ID = 1 
-		                        OR EMW.IsChangePosition2ID = 1 ) then N'fa fa-sitemap' 
-	                        when ( EMW.IsChangeWorkEmpType = 1 OR EMW.IsChangeEmpType = 1 ) then N'fa fa-random' 
-	                        when (EMW.IsChangeJapaneseLevel = 1 
-		                        OR EMW.IsChangeBusinessAllowanceLevel = 1 
-		                        OR EMW.IsChangeRoomWithInternetAllowanceLevel = 1
-		                        OR EMW.IsChangeRoomNoInternetAllowanceLevel = 1
-		                        OR EMW.IsChangeBseAllowanceLevel = 1) then N'fa fa-usd' 
-	                        when( EMW.IsChangeCollect = 1 
-		                        OR EMW.IsChangeEducationLevel = 1 ) then  N'fa fa-graduation-cap' 
-	                        when (EMW.IsChangeContractType = 1 ) then N'fa fa-file-text' 
-	                        when (EMW.IsChangeOnsiteCustomerID = 1 ) then N'fa fa-plane' 
-	                        else N'fa fa-tag' end  Icon
-                        ,emp.FullName       FullName
-                        ,emp.Avatar       
-                        ,ISNULL( DATEDIFF(m,[emp].Startworkingdate , CONVERT(DATE,GETDATE())),0)    KeikenFromStartWorkingMonths
-                        ,ISNULL(DATEDIFF(m,[emp].ContractDate ,CONVERT(DATE,GETDATE())),0)          KeikenFromContractMonths
-                        ,DATEDIFF(year, [emp].BirthDay, CONVERT(DATE,GETDATE()))- case when DATEADD(year,DATEDIFF(year, [emp].BirthDay, CONVERT(DATE,GETDATE())), emp.BirthDay)> CONVERT(DATE,GETDATE()) then 1 else 0 end   Age
-                        ,ISNULL(DATEDIFF(DD,[emp].BirthDay , CONVERT(DATE,GETDATE())),0) /362.25 AgeFull
+                            , case 
+	                            when (EMW.IsChangeCompanyID = 1 
+		                            OR EMW.IsChangeDeptID = 1 
+		                            OR EMW.IsChangeTeamID = 1 
+		                            OR EMW.IsChangePositionID = 1 
+		                            OR EMW.IsChangeCompany2ID = 1  
+		                            OR EMW.IsChangeDept2ID = 1
+		                            OR EMW.IsChangeTeam2ID = 1 
+		                            OR EMW.IsChangePosition2ID = 1 ) then N'fa fa-sitemap' 
+	                            when ( EMW.IsChangeWorkEmpType = 1 OR EMW.IsChangeEmpType = 1 ) then N'fa fa-random' 
+	                            when (EMW.IsChangeJapaneseLevel = 1 
+		                            OR EMW.IsChangeBusinessAllowanceLevel = 1 
+		                            OR EMW.IsChangeRoomWithInternetAllowanceLevel = 1
+		                            OR EMW.IsChangeRoomNoInternetAllowanceLevel = 1
+		                            OR EMW.IsChangeBseAllowanceLevel = 1) then N'fa fa-usd' 
+	                            when( EMW.IsChangeCollect = 1 
+		                            OR EMW.IsChangeEducationLevel = 1 ) then  N'fa fa-graduation-cap' 
+	                            when (EMW.IsChangeContractType = 1 ) then N'fa fa-file-text' 
+	                            when (EMW.IsChangeOnsiteCustomerID = 1 ) then N'fa fa-plane' 
+	                            else N'fa fa-tag' end  Icon
+                            ,emp.FullName       FullName
+                            ,emp.Avatar       
+                            ,ISNULL( DATEDIFF(m,[emp].Startworkingdate , CONVERT(DATE,GETDATE())),0)    KeikenFromStartWorkingMonths
+                            ,ISNULL(DATEDIFF(m,[emp].ContractDate ,CONVERT(DATE,GETDATE())),0)          KeikenFromContractMonths
+                            ,DATEDIFF(year, [emp].BirthDay, CONVERT(DATE,GETDATE()))- case when DATEADD(year,DATEDIFF(year, [emp].BirthDay, CONVERT(DATE,GETDATE())), emp.BirthDay)> CONVERT(DATE,GETDATE()) then 1 else 0 end   Age
+                            ,ISNULL(DATEDIFF(DD,[emp].BirthDay , CONVERT(DATE,GETDATE())),0) /362.25 AgeFull
 
-                        FROM EmpDetailWorks EMW
-                        LEFT OUTER JOIN dbo.Emps AS emp ON EMW.EmpID = emp.ID 
-                        LEFT OUTER JOIN dbo.Companys AS com ON emp.CurrentCompanyID = com.ID 
-                        LEFT OUTER JOIN dbo.Depts AS dep ON emp.CurrentDeptID = dep.ID 
-                        LEFT OUTER JOIN dbo.Teams AS tea ON emp.CurrentTeamID = tea.ID 
-                        LEFT OUTER JOIN dbo.Positions AS pos ON emp.CurrentPositionID= pos.ID 
-                        LEFT OUTER JOIN dbo.Companys AS co2 ON EMW.Company2ID = co2.ID 
-                        LEFT OUTER JOIN dbo.Depts AS de2 ON EMW.Dept2ID = de2.ID 
-                        LEFT OUTER JOIN dbo.Teams AS te2 ON EMW.Team2ID = te2.ID 
-                        LEFT OUTER JOIN dbo.Positions AS po2 ON EMW.Position2ID = po2.ID
+                            FROM EmpDetailWorks EMW
+                            LEFT OUTER JOIN dbo.Emps AS emp ON EMW.EmpID = emp.ID 
+                            LEFT OUTER JOIN dbo.Companys AS com ON emp.CurrentCompanyID = com.ID 
+                            LEFT OUTER JOIN dbo.Depts AS dep ON emp.CurrentDeptID = dep.ID 
+                            LEFT OUTER JOIN dbo.Teams AS tea ON emp.CurrentTeamID = tea.ID 
+                            LEFT OUTER JOIN dbo.Positions AS pos ON emp.CurrentPositionID= pos.ID 
+                            LEFT OUTER JOIN dbo.Companys AS co2 ON EMW.Company2ID = co2.ID 
+                            LEFT OUTER JOIN dbo.Depts AS de2 ON EMW.Dept2ID = de2.ID 
+                            LEFT OUTER JOIN dbo.Teams AS te2 ON EMW.Team2ID = te2.ID 
+                            LEFT OUTER JOIN dbo.Positions AS po2 ON EMW.Position2ID = po2.ID
 
-                        LEFT OUTER JOIN dbo.MasterDetails AS etp ON EMW.EmpTypeMasterID = etp.MasterID AND EMW.EmpTypeMasterDetailID = etp.MasterDetailCode 
-                        LEFT OUTER JOIN dbo.MasterDetails AS jap ON EMW.JapaneseLevelMasterID = jap.MasterID AND EMW.JapaneseLevelMasterDetailID = jap.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS etp ON EMW.EmpTypeMasterID = etp.MasterID AND EMW.EmpTypeMasterDetailID = etp.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS jap ON EMW.JapaneseLevelMasterID = jap.MasterID AND EMW.JapaneseLevelMasterDetailID = jap.MasterDetailCode 
 
-                        LEFT OUTER JOIN dbo.MasterDetails AS alo ON EMW.BusinessAllowanceLevelMasterID = alo.MasterID AND EMW.BusinessAllowanceLevelMasterDetailID = alo.MasterDetailCode 
-                        LEFT OUTER JOIN dbo.MasterDetails AS rwi ON EMW.RoomWithInternetAllowanceLevelMasterID = rwi.MasterID AND EMW.RoomWithInternetAllowanceLevelMasterDetailID = rwi.MasterDetailCode 
-                        LEFT OUTER JOIN dbo.MasterDetails AS rni ON EMW.RoomNoInternetAllowanceLevelMasterID = rni.MasterID AND EMW.RoomNoInternetAllowanceLevelMasterDetailID = rni.MasterDetailCode 
-                        LEFT OUTER JOIN dbo.MasterDetails AS bse ON EMW.BseAllowanceLevelMasterID = bse.MasterID AND EMW.BseAllowanceLevelMasterDetailID = bse.MasterDetailCode 
-                        LEFT OUTER JOIN dbo.MasterDetails AS col ON EMW.CollectMasterID = col.MasterID AND EMW.CollectMasterDetailID = col.MasterDetailCode 
-                        LEFT OUTER JOIN dbo.MasterDetails AS edu ON EMW.EducationLevelMasterID = edu.MasterID AND EMW.EducationLevelMasterDetailID = edu.MasterDetailCode
-                        LEFT OUTER JOIN dbo.MasterDetails AS con ON EMW.ContractTypeMasterID = con.MasterID AND EMW.ContractTypeMasterDetailID = con.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS alo ON EMW.BusinessAllowanceLevelMasterID = alo.MasterID AND EMW.BusinessAllowanceLevelMasterDetailID = alo.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS rwi ON EMW.RoomWithInternetAllowanceLevelMasterID = rwi.MasterID AND EMW.RoomWithInternetAllowanceLevelMasterDetailID = rwi.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS rni ON EMW.RoomNoInternetAllowanceLevelMasterID = rni.MasterID AND EMW.RoomNoInternetAllowanceLevelMasterDetailID = rni.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS bse ON EMW.BseAllowanceLevelMasterID = bse.MasterID AND EMW.BseAllowanceLevelMasterDetailID = bse.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS col ON EMW.CollectMasterID = col.MasterID AND EMW.CollectMasterDetailID = col.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.MasterDetails AS edu ON EMW.EducationLevelMasterID = edu.MasterID AND EMW.EducationLevelMasterDetailID = edu.MasterDetailCode
+                            LEFT OUTER JOIN dbo.MasterDetails AS con ON EMW.ContractTypeMasterID = con.MasterID AND EMW.ContractTypeMasterDetailID = con.MasterDetailCode 
 
-                        LEFT OUTER JOIN dbo.MasterDetails AS wet ON EMW.WorkEmpTypeMasterID = wet.MasterID AND EMW.WorkEmpTypeMasterDetailID = wet.MasterDetailCode 
-                        LEFT OUTER JOIN dbo.Customers AS cus ON EMW.OnsiteCustomerID = cus.ID 
-                        LEFT OUTER JOIN dbo.RecruitmentStaffs AS RES ON EMW.EmpID = RES.SystemEmpID 
+                            LEFT OUTER JOIN dbo.MasterDetails AS wet ON EMW.WorkEmpTypeMasterID = wet.MasterID AND EMW.WorkEmpTypeMasterDetailID = wet.MasterDetailCode 
+                            LEFT OUTER JOIN dbo.Customers AS cus ON EMW.OnsiteCustomerID = cus.ID 
+                            LEFT OUTER JOIN dbo.RecruitmentStaffs AS RES ON EMW.EmpID = RES.SystemEmpID 
 
-                        WHERE 1= 1 AND EMW.EmpID = @EmpID@ 
-                        AND EMW.WorkEmpTypeMasterID IS NOT NULL 
-                        AND EMW.EndDate IS NOT NULL
-                        AND 1 = CASE WHEN EMW.WorkEmpTypeMasterDetailID =1 AND  EMW.DeptID <> Emp.CurrentDeptID THEN  1 --dept khac sang ho tro
-		                        WHEN EMW.WorkEmpTypeMasterDetailID =2 AND  EMW.DeptID <> Emp.CurrentDeptID  THEN  1 --sang dept khac
-		                        WHEN EMW.WorkEmpTypeMasterDetailID =3  THEN  1 --onsite
-		                        WHEN EMW.WorkEmpTypeMasterDetailID =4  THEN  1 --nghi giua chung
-		                        ELSE 0 END
-
+                            WHERE 1= 1 AND EMW.EmpID = @EmpID@ 
+                            AND EMW.WorkEmpTypeMasterID IS NOT NULL 
+                            AND EMW.EndDate IS NOT NULL
+                            AND 1 = CASE WHEN EMW.WorkEmpTypeMasterDetailID =1 AND  EMW.DeptID <> Emp.CurrentDeptID THEN  1 --dept khac sang ho tro
+		                            WHEN EMW.WorkEmpTypeMasterDetailID =2 AND  EMW.DeptID <> Emp.CurrentDeptID  THEN  1 --sang dept khac
+		                            WHEN EMW.WorkEmpTypeMasterDetailID =3  THEN  1 --onsite
+		                            WHEN EMW.WorkEmpTypeMasterDetailID =4  THEN  1 --nghi giua chung
+		                            ELSE 0 END
+                        )DET
                 ";
 
             //thay the parameter
